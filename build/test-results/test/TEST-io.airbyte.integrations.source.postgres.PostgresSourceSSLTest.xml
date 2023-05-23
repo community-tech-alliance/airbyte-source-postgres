@@ -1,0 +1,74 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.airbyte.integrations.source.postgres.PostgresSourceSSLTest" tests="5" skipped="0" failures="0" errors="0" timestamp="2023-05-20T13:44:52" hostname="MacBook-Pro-3" time="33.223">
+  <properties/>
+  <testcase name="testPreferSSLWithCdcReplicationMethod()" classname="io.airbyte.integrations.source.postgres.PostgresSourceSSLTest" time="6.231"/>
+  <testcase name="testIsCdc()" classname="io.airbyte.integrations.source.postgres.PostgresSourceSSLTest" time="13.081"/>
+  <testcase name="testDiscoverWithPk()" classname="io.airbyte.integrations.source.postgres.PostgresSourceSSLTest" time="3.183"/>
+  <testcase name="testReadSuccess()" classname="io.airbyte.integrations.source.postgres.PostgresSourceSSLTest" time="4.447"/>
+  <testcase name="testAllowSSLWithCdcReplicationMethod()" classname="io.airbyte.integrations.source.postgres.PostgresSourceSSLTest" time="6.278"/>
+  <system-out><![CDATA[{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.u.ImageNameSubstitutor(instance):55 Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.d.DockerClientProviderStrategy(lambda$loadConfiguredStrategy$9):362 Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.d.DockerClientProviderStrategy(tryOutStrategy):272 Found Docker environment with local Unix socket (unix:///var/run/docker.sock)"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.DockerClientFactory(client):198 Docker host IP address is localhost"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.DockerClientFactory(client):205 Connected to docker: \n  Server Version: 20.10.12\n  API Version: 1.41\n  Operating System: Docker Desktop\n  Total Memory: 1985 MB"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):376 Creating container for image: testcontainers/ryuk:0.3.4"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):440 Container testcontainers/ryuk:0.3.4 is starting: 3d03c36af8550d82baf5c17ddab22bfc16652e94ef6cf531d1b82671168af608"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):520 Container testcontainers/ryuk:0.3.4 started in PT8.552692S"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.u.RyukResourceReaper(init):43 Ryuk started - will monitor and terminate Testcontainers containers on JVM exit"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.DockerClientFactory(client):235 Checking the system..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.DockerClientFactory(check):256 ✔︎ Docker server version should be at least 1.6.0"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):376 Creating container for image: marcosmarxm/postgres-ssl:dev"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):440 Container marcosmarxm/postgres-ssl:dev is starting: 1229299c7e214c7b2c6efdc19246e56b13a74a3892224f9c00108605da5d2702"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):520 Container marcosmarxm/postgres-ssl:dev started in PT43.296979S"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-1 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-1 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.j.t.JooqLogger(info):312 \n                                      \n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@@@@@@@@@@@@@@@@  @@        @@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@        @@@@@@@@@@\n@@@@@@@@@@@@@@@@  @@  @@    @@@@@@@@@@\n@@@@@@@@@@  @@@@  @@  @@    @@@@@@@@@@\n@@@@@@@@@@        @@        @@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@@@@@@@@@@        @@        @@@@@@@@@@\n@@@@@@@@@@    @@  @@  @@@@  @@@@@@@@@@\n@@@@@@@@@@    @@  @@  @@@@  @@@@@@@@@@\n@@@@@@@@@@        @@  @  @  @@@@@@@@@@\n@@@@@@@@@@        @@        @@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@  @@@@@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  Thank you for using jOOQ 3.13.4\n                                      "}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: true"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-2 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-2 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: true"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-3 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-3 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(toSslJdbcParamInternal):544 REQUIRED toSslJdbcParam require"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-4 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-4 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverPrimaryKeys):266 Discover primary keys for tables: [id_and_name2, names, id_and_name]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(close):350 HikariPool-4 - Shutdown initiated..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(close):352 HikariPool-4 - Shutdown completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-5 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-5 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.StateManagerFactory(createStateManager):48 Legacy state manager selected to manage state object with type LEGACY."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_id_and_name, New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.CdcStateManager(<init>):29 Initialized CDC state with: null"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(toSslJdbcParamInternal):544 REQUIRED toSslJdbcParam require"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-6 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-6 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(logPreSyncDebugData):450 Data source product recognized as PostgreSQL:11.11"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"id_and_name\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):223 Index name: id_and_name_pkey, Column: id, Unique: true"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):223 Index name: i1, Column: id, Unique: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresQueryUtils(logXminStatus):77 Xmin Status : {Number of wraparounds: 0, Xmin Transaction Value: 602, Xmin Raw Value: 602"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(queryTableFullRefresh):112 Queueing query for table: id_and_name"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.RelationalDbQueryUtils(lambda$queryTable$0):73 Queueing query: SELECT \"id\",\"name\",\"power\" FROM \"public\".\"id_and_name\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitStartStreamStatus$1):155 STARTING -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590319273E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"STARTED"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitRunningStreamStatus$0):148 RUNNING -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590319315E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"RUNNING"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitCompleteStreamStatus$2):162 COMPLETE -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590319676E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"COMPLETE"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-7 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-7 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: true"}}
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

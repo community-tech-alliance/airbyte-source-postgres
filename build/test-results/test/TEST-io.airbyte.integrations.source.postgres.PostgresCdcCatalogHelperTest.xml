@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.airbyte.integrations.source.postgres.PostgresCdcCatalogHelperTest" tests="3" skipped="0" failures="0" errors="0" timestamp="2023-05-20T13:43:39" hostname="MacBook-Pro-3" time="15.073">
+  <properties/>
+  <testcase name="testSetIncrementalToSourceDefined()" classname="io.airbyte.integrations.source.postgres.PostgresCdcCatalogHelperTest" time="8.977"/>
+  <testcase name="testRemoveIncrementalWithoutPk()" classname="io.airbyte.integrations.source.postgres.PostgresCdcCatalogHelperTest" time="5.511"/>
+  <testcase name="testAddCdcMetadataColumns()" classname="io.airbyte.integrations.source.postgres.PostgresCdcCatalogHelperTest" time="0.452"/>
+  <system-out><![CDATA[]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

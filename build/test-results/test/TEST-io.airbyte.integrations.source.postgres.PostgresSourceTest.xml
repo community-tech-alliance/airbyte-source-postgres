@@ -1,0 +1,364 @@
+<?xml version="1.0" encoding="UTF-8"?>
+<testsuite name="io.airbyte.integrations.source.postgres.PostgresSourceTest" tests="14" skipped="0" failures="0" errors="0" timestamp="2023-05-20T13:44:20" hostname="MacBook-Pro-3" time="130.52">
+  <properties/>
+  <testcase name="testCanReadUtf8()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="44.635"/>
+  <testcase name="testUserDoesntHasPrivilegesToSelectTable()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="18.302"/>
+  <testcase name="testJdbcUrlWithEscapedDatabaseName()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="1.585"/>
+  <testcase name="tableWithInvalidCursorShouldThrowException()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="33.18"/>
+  <testcase name="testIsCdc()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="0.611"/>
+  <testcase name="viewWithNullValueCursorShouldThrowException()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="7.97"/>
+  <testcase name="tableWithNullValueCursorShouldThrowException()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="4.974"/>
+  <testcase name="testDiscoverWithPk()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="0.851"/>
+  <testcase name="testReadSuccess()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="0.466"/>
+  <testcase name="testReadIncrementalSuccess()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="0.823"/>
+  <testcase name="testGetUsername()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="0.483"/>
+  <testcase name="testDiscoverRecursiveRolePermissions()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="6.116"/>
+  <testcase name="testDiscoverDifferentGrantAvailability()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="5.27"/>
+  <testcase name="testCanReadTablesAndColumnsWithDoubleQuotes()" classname="io.airbyte.integrations.source.postgres.PostgresSourceTest" time="5.244"/>
+  <system-out><![CDATA[{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.u.ImageNameSubstitutor(instance):55 Image name substitution will be performed by: DefaultImageNameSubstitutor (composite of 'ConfigurationFileImageNameSubstitutor' and 'PrefixingImageNameSubstitutor')"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.d.DockerClientProviderStrategy(lambda$loadConfiguredStrategy$9):362 Loaded org.testcontainers.dockerclient.UnixSocketClientProviderStrategy from ~/.testcontainers.properties, will try it first"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.d.DockerClientProviderStrategy(tryOutStrategy):272 Found Docker environment with local Unix socket (unix:///var/run/docker.sock)"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.DockerClientFactory(client):198 Docker host IP address is localhost"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.DockerClientFactory(client):205 Connected to docker: \n  Server Version: 20.10.12\n  API Version: 1.41\n  Operating System: Docker Desktop\n  Total Memory: 1985 MB"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):376 Creating container for image: testcontainers/ryuk:0.3.4"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):440 Container testcontainers/ryuk:0.3.4 is starting: 245442dbed427af8ebdef81a7f9c3a52eb21ed46adf7f5a21e11b141b2b1e230"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):520 Container testcontainers/ryuk:0.3.4 started in PT7.636529S"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.u.RyukResourceReaper(init):43 Ryuk started - will monitor and terminate Testcontainers containers on JVM exit"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.DockerClientFactory(client):235 Checking the system..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.DockerClientFactory(check):256 ✔︎ Docker server version should be at least 1.6.0"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):376 Creating container for image: postgres:13-alpine"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):440 Container postgres:13-alpine is starting: f3d020fd3e973c4065acec798b0e66982176068015586570097dbe5b9e8b58a9"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):520 Container postgres:13-alpine started in PT10.877008S"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-1 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-1 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.j.t.JooqLogger(info):312 \n                                      \n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@@@@@@@@@@@@@@@@  @@        @@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@        @@@@@@@@@@\n@@@@@@@@@@@@@@@@  @@  @@    @@@@@@@@@@\n@@@@@@@@@@  @@@@  @@  @@    @@@@@@@@@@\n@@@@@@@@@@        @@        @@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@@@@@@@@@@        @@        @@@@@@@@@@\n@@@@@@@@@@    @@  @@  @@@@  @@@@@@@@@@\n@@@@@@@@@@    @@  @@  @@@@  @@@@@@@@@@\n@@@@@@@@@@        @@  @  @  @@@@@@@@@@\n@@@@@@@@@@        @@        @@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@  @@@@@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@\n@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@@  Thank you for using jOOQ 3.13.4\n                                      "}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):376 Creating container for image: postgres:13-alpine"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):440 Container postgres:13-alpine is starting: c28c5136e8657e785e4a75bbb10bf6f7049f45ef32a09236f657fabc60707c6b"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):520 Container postgres:13-alpine started in PT35.648013S"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-2 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-2 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.StateManagerFactory(createStateManager):48 Legacy state manager selected to manage state object with type LEGACY."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_id_and_name2, New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_id_and_name_3_view, New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_id_and_name, New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_id_and_name_3, New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_names, New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.CdcStateManager(<init>):29 Initialized CDC state with: null"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-3 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-3 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(logPreSyncDebugData):450 Data source product recognized as PostgreSQL:13.11"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"id_and_name\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"id_and_name2\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"names\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"id_and_name_3\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"id_and_name_3_view\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresQueryUtils(logXminStatus):77 Xmin Status : {Number of wraparounds: 0, Xmin Transaction Value: 489, Xmin Raw Value: 489"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"WARN","message":"WARN i.a.i.s.r.DbSourceDiscoverUtil(logSourceSchemaChange):82 Source schema changed for table public.id_and_name! Potential mismatches: [id, power]. Actual schema: {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"id\":{\"type\":\"number\",\"airbyte_type\":\"integer\"}}}. Catalog schema: {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"id\":{\"type\":\"number\"},\"power\":{\"type\":\"number\"}}}"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(queryTableFullRefresh):112 Queueing query for table: id_and_name"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.AbstractDbSource(getSelectedIterators):334 Skipping stream public.id_and_name2 because it is not in the source"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.AbstractDbSource(getSelectedIterators):334 Skipping stream public.names because it is not in the source"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.AbstractDbSource(getSelectedIterators):334 Skipping stream public.id_and_name_3 because it is not in the source"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.AbstractDbSource(getSelectedIterators):334 Skipping stream public.id_and_name_3_view because it is not in the source"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.RelationalDbQueryUtils(lambda$queryTable$0):73 Queueing query: SELECT \"id\",\"name\" FROM \"public\".\"id_and_name\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitStartStreamStatus$1):155 STARTING -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590302581E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"STARTED"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitRunningStreamStatus$0):148 RUNNING -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590302619E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"RUNNING"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitCompleteStreamStatus$2):162 COMPLETE -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590302668E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"COMPLETE"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-4 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-4 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):376 Creating container for image: postgres:13-alpine"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):440 Container postgres:13-alpine is starting: b09797dd1f1967c8c7981ac06c85896e09efd9e105d65fef558d1a0672539ff5"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):520 Container postgres:13-alpine started in PT14.203082S"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-5 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-5 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-6 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-6 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.StateManagerFactory(createStateManager):48 Legacy state manager selected to manage state object with type LEGACY."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_id_and_name2, New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_id_and_name_3_view, New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_id_and_name, New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_id_and_name_3, New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_names, New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.CdcStateManager(<init>):29 Initialized CDC state with: null"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-7 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-7 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(logPreSyncDebugData):450 Data source product recognized as PostgreSQL:13.11"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"id_and_name\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"id_and_name2\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"names\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"id_and_name_3\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"id_and_name_3_view\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresQueryUtils(logXminStatus):77 Xmin Status : {Number of wraparounds: 0, Xmin Transaction Value: 495, Xmin Raw Value: 495"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"WARN","message":"WARN i.a.i.s.r.DbSourceDiscoverUtil(logSourceSchemaChange):82 Source schema changed for table public.id_and_name_3! Potential mismatches: [id]. Actual schema: {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"id\":{\"type\":\"number\",\"airbyte_type\":\"integer\"}}}. Catalog schema: {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"id\":{\"type\":\"number\"}}}"}}
+{"type":"LOG","log":{"level":"WARN","message":"WARN i.a.i.s.r.DbSourceDiscoverUtil(logSourceSchemaChange):82 Source schema changed for table public.id_and_name_3_view! Potential mismatches: [id]. Actual schema: {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"id\":{\"type\":\"number\",\"airbyte_type\":\"integer\"}}}. Catalog schema: {\"type\":\"object\",\"properties\":{\"name\":{\"type\":\"string\"},\"id\":{\"type\":\"number\"}}}"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.AbstractDbSource(getSelectedIterators):334 Skipping stream public.id_and_name because it is not in the source"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.AbstractDbSource(getSelectedIterators):334 Skipping stream public.id_and_name2 because it is not in the source"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.AbstractDbSource(getSelectedIterators):334 Skipping stream public.names because it is not in the source"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(queryTableFullRefresh):112 Queueing query for table: id_and_name_3"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(queryTableFullRefresh):112 Queueing query for table: id_and_name_3_view"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.RelationalDbQueryUtils(lambda$queryTable$0):73 Queueing query: SELECT \"id\",\"name\" FROM \"public\".\"id_and_name_3\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitStartStreamStatus$1):155 STARTING -> public_id_and_name_3"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590321172E12,"stream_status":{"stream_descriptor":{"name":"id_and_name_3","namespace":"public"},"status":"STARTED"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitRunningStreamStatus$0):148 RUNNING -> public_id_and_name_3"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590321173E12,"stream_status":{"stream_descriptor":{"name":"id_and_name_3","namespace":"public"},"status":"RUNNING"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitCompleteStreamStatus$2):162 COMPLETE -> public_id_and_name_3"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590321178E12,"stream_status":{"stream_descriptor":{"name":"id_and_name_3","namespace":"public"},"status":"COMPLETE"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitStartStreamStatus$1):155 STARTING -> public_id_and_name_3_view"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590321178E12,"stream_status":{"stream_descriptor":{"name":"id_and_name_3_view","namespace":"public"},"status":"STARTED"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.RelationalDbQueryUtils(lambda$queryTable$0):73 Queueing query: SELECT \"id\",\"name\" FROM \"public\".\"id_and_name_3_view\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitRunningStreamStatus$0):148 RUNNING -> public_id_and_name_3_view"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590321249E12,"stream_status":{"stream_descriptor":{"name":"id_and_name_3_view","namespace":"public"},"status":"RUNNING"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitCompleteStreamStatus$2):162 COMPLETE -> public_id_and_name_3_view"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590321257E12,"stream_status":{"stream_descriptor":{"name":"id_and_name_3_view","namespace":"public"},"status":"COMPLETE"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-8 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-8 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-9 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-9 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):376 Creating container for image: postgres:13-alpine"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):440 Container postgres:13-alpine is starting: 524cda51ebe5a7aec13a78d5833225d7c869d80ed4ec5292cd23627e19811bc5"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):520 Container postgres:13-alpine started in PT29.721638S"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-10 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-10 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.StateManagerFactory(createStateManager):48 Legacy state manager selected to manage state object with type LEGACY."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_test_table, New Cursor Field: id. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.CdcStateManager(<init>):29 Initialized CDC state with: null"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-11 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-11 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(logPreSyncDebugData):450 Data source product recognized as PostgreSQL:13.11"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"test_table\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):223 Index name: test_table_pkey, Column: id, Unique: true"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresQueryUtils(logXminStatus):77 Xmin Status : {Number of wraparounds: 0, Xmin Transaction Value: 489, Xmin Raw Value: 489"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-12 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-12 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: true"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-13 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-13 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):376 Creating container for image: postgres:13-alpine"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):440 Container postgres:13-alpine is starting: 4223640baa678c1f37d8cef4f593b01b91419dc58c9adca195dfa5e30f80f5ac"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):520 Container postgres:13-alpine started in PT6.250427S"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-14 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-14 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.StateManagerFactory(createStateManager):48 Legacy state manager selected to manage state object with type LEGACY."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_test_view_null_cursor, New Cursor Field: id. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.CdcStateManager(<init>):29 Initialized CDC state with: null"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-15 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-15 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(logPreSyncDebugData):450 Data source product recognized as PostgreSQL:13.11"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"test_view_null_cursor\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresQueryUtils(logXminStatus):77 Xmin Status : {Number of wraparounds: 0, Xmin Transaction Value: 490, Xmin Raw Value: 490"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-16 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-16 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):376 Creating container for image: postgres:13-alpine"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):440 Container postgres:13-alpine is starting: 903f011b463efecfafded101be687b28b873c405766771c9dc5c2ad0393301f4"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):520 Container postgres:13-alpine started in PT3.450802S"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-17 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-17 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.StateManagerFactory(createStateManager):48 Legacy state manager selected to manage state object with type LEGACY."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_test_table_null_cursor, New Cursor Field: id. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.CdcStateManager(<init>):29 Initialized CDC state with: null"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-18 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-18 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(logPreSyncDebugData):450 Data source product recognized as PostgreSQL:13.11"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"test_table_null_cursor\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresQueryUtils(logXminStatus):77 Xmin Status : {Number of wraparounds: 0, Xmin Transaction Value: 489, Xmin Raw Value: 489"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-19 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-19 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-20 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-20 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverPrimaryKeys):266 Discover primary keys for tables: [id_and_name2, names, id_and_name]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(close):350 HikariPool-20 - Shutdown initiated..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(close):352 HikariPool-20 - Shutdown completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-21 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-21 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.StateManagerFactory(createStateManager):48 Legacy state manager selected to manage state object with type LEGACY."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_id_and_name, New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.CdcStateManager(<init>):29 Initialized CDC state with: null"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-22 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-22 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(logPreSyncDebugData):450 Data source product recognized as PostgreSQL:13.11"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"id_and_name\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):223 Index name: id_and_name_pkey, Column: id, Unique: true"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):223 Index name: i1, Column: id, Unique: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresQueryUtils(logXminStatus):77 Xmin Status : {Number of wraparounds: 0, Xmin Transaction Value: 559, Xmin Raw Value: 559"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(queryTableFullRefresh):112 Queueing query for table: id_and_name"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.RelationalDbQueryUtils(lambda$queryTable$0):73 Queueing query: SELECT \"id\",\"name\",\"power\" FROM \"public\".\"id_and_name\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitStartStreamStatus$1):155 STARTING -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.6845903732E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"STARTED"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitRunningStreamStatus$0):148 RUNNING -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590373201E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"RUNNING"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitCompleteStreamStatus$2):162 COMPLETE -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590373211E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"COMPLETE"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-23 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-23 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-24 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-24 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.StateManagerFactory(createStateManager):48 Legacy state manager selected to manage state object with type LEGACY."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_id_and_name, New Cursor Field: id. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.CdcStateManager(<init>):29 Initialized CDC state with: null"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-25 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-25 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(logPreSyncDebugData):450 Data source product recognized as PostgreSQL:13.11"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"id_and_name\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):223 Index name: id_and_name_pkey, Column: id, Unique: true"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):223 Index name: i1, Column: id, Unique: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresQueryUtils(logXminStatus):77 Xmin Status : {Number of wraparounds: 0, Xmin Transaction Value: 569, Xmin Raw Value: 569"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(queryTableFullRefresh):112 Queueing query for table: id_and_name"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.RelationalDbQueryUtils(lambda$queryTable$0):73 Queueing query: SELECT \"id\",\"name\",\"power\" FROM \"public\".\"id_and_name\" ORDER BY \"id\" ASC"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitStartStreamStatus$1):155 STARTING -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590373815E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"STARTED"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitRunningStreamStatus$0):148 RUNNING -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590373816E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"RUNNING"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.LegacyStateManager(toState):99 Generated legacy state for 1 streams"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.LegacyStateManager(toState):99 Generated legacy state for 1 streams"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitCompleteStreamStatus$2):162 COMPLETE -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590373827E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"COMPLETE"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.StateManagerFactory(createStateManager):48 Legacy state manager selected to manage state object with type LEGACY."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):169 Found matching cursor in state. Stream: public_id_and_name. Cursor Field: id Value: 1 Count: 1"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.CdcStateManager(<init>):29 Initialized CDC state with: null"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.StateManagerFactory(createStateManager):48 Legacy state manager selected to manage state object with type LEGACY."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):169 Found matching cursor in state. Stream: public_id_and_name. Cursor Field: id Value: 3 Count: 1"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.CdcStateManager(<init>):29 Initialized CDC state with: null"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.StateManagerFactory(createStateManager):48 Legacy state manager selected to manage state object with type LEGACY."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):169 Found matching cursor in state. Stream: public_id_and_name. Cursor Field: id Value: 3 Count: 1"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.CdcStateManager(<init>):29 Initialized CDC state with: null"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-26 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-26 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(logPreSyncDebugData):450 Data source product recognized as PostgreSQL:13.11"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"id_and_name\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):223 Index name: id_and_name_pkey, Column: id, Unique: true"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):223 Index name: i1, Column: id, Unique: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresQueryUtils(logXminStatus):77 Xmin Status : {Number of wraparounds: 0, Xmin Transaction Value: 570, Xmin Raw Value: 570"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(queryTableIncremental):320 Queueing query for table: id_and_name"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(lambda$queryTableIncremental$18):327 Preparing query for table: id_and_name"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(lambda$queryTableIncremental$18):337 Table id_and_name cursor count: expected 1, actual 1"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(lambda$queryTableIncremental$18):358 Executing query for table id_and_name: HikariProxyPreparedStatement@391731193 wrapping SELECT \"id\",\"name\",\"power\" FROM \"public\".\"id_and_name\" WHERE \"id\" > ? ORDER BY \"id\" ASC"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitStartStreamStatus$1):155 STARTING -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590374024E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"STARTED"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitRunningStreamStatus$0):148 RUNNING -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590374028E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"RUNNING"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.LegacyStateManager(toState):99 Generated legacy state for 1 streams"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitCompleteStreamStatus$2):162 COMPLETE -> public_id_and_name"}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590374034E12,"stream_status":{"stream_descriptor":{"name":"id_and_name","namespace":"public"},"status":"COMPLETE"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-27 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-27 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(getUsername):475 Azure username \"airbyte-user@airbyte\" is detected; use \"airbyte-user\" to check permission"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-28 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-28 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):376 Creating container for image: postgres:13-alpine"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):440 Container postgres:13-alpine is starting: b7e7dadf18d9afc8401f0a619e139c68a0bdaa8a34aa77e56ad452164dda2d44"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):520 Container postgres:13-alpine started in PT4.108935S"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-29 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-29 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-30 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-30 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-31 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-31 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverPrimaryKeys):266 Discover primary keys for tables: [id_and_name, id_and_name_3, id_and_name_7]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(close):350 HikariPool-31 - Shutdown initiated..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(close):352 HikariPool-31 - Shutdown completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-32 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-32 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverPrimaryKeys):266 Discover primary keys for tables: []"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(close):350 HikariPool-32 - Shutdown initiated..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(close):352 HikariPool-32 - Shutdown completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-33 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-33 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):376 Creating container for image: postgres:13-alpine"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):440 Container postgres:13-alpine is starting: 14b5ac0eb5c780278851350c1339980bef1b0b6b16f0bd1e5b5ab6a05f5450d2"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):520 Container postgres:13-alpine started in PT3.558098S"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-34 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-34 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-35 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-35 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(accept):40 Set new fetch size: 1078782 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.TwoStageSizeEstimator(getTargetBufferByteSize):71 Max memory limit: 536870912, JDBC buffer size: 322122547"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverPrimaryKeys):266 Discover primary keys for tables: [test_table_granted_directly, test_view_granted_directly_with_options, table_granted_by_role_with_options, test_table_granted_directly_with_options, test_mv_granted_directly_with_options, mv_granted_by_role, view_granted_by_role, test_view_granted_directly, view_granted_by_role_with_options, test_mv_granted_directly, table_granted_by_role, mv_granted_by_role_with_options]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(close):350 HikariPool-35 - Shutdown initiated..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(close):352 HikariPool-35 - Shutdown completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-36 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-36 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):376 Creating container for image: postgres:13-alpine"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):440 Container postgres:13-alpine is starting: 1ae60358c8aedf5f65d0593b19fb7fddf4b16cb016b5433bcffd68241ec46a6d"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO o.t.c.GenericContainer(tryStart):520 Container postgres:13-alpine started in PT3.676963S"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-37 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-37 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.StateManagerFactory(createStateManager):48 Legacy state manager selected to manage state object with type LEGACY."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.s.CursorManager(createCursorInfoForStream):182 No cursor field set in catalog but not present in state. Stream: public_\"test_dq_table\", New Cursor Field: null. Resetting cursor value"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.CdcStateManager(<init>):29 Initialized CDC state with: null"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):80 HikariPool-38 - Starting..."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO c.z.h.HikariDataSource(<init>):82 HikariPool-38 - Start completed."}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(logPreSyncDebugData):450 Data source product recognized as PostgreSQL:13.11"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):221 Discovering indexes for schema \"public\", table \"\"test_dq_table\"\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresSource(logPreSyncDebugData):223 Index name: \"test_dq_table\"_pkey, Column: id, Unique: true"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresQueryUtils(logXminStatus):77 Xmin Status : {Number of wraparounds: 0, Xmin Transaction Value: 489, Xmin Raw Value: 489"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(discoverInternal):166 Internal schemas to exclude: [catalog_history, information_schema, pg_catalog, pg_internal]"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"WARN","message":"WARN i.a.i.s.r.DbSourceDiscoverUtil(logSourceSchemaChange):82 Source schema changed for table public.\"test_dq_table\"! Potential mismatches: [id]. Actual schema: {\"type\":\"object\",\"properties\":{\"\\\"test_column\\\"\":{\"type\":\"string\"},\"id\":{\"type\":\"number\",\"airbyte_type\":\"integer\"}}}. Catalog schema: {\"type\":\"object\",\"properties\":{\"\\\"test_column\\\"\":{\"type\":\"string\"},\"id\":{\"type\":\"number\"}}}"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.p.PostgresUtils(isCdc):53 using CDC: false"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.j.AbstractJdbcSource(queryTableFullRefresh):112 Queueing query for table: \"test_dq_table\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.i.s.r.RelationalDbQueryUtils(lambda$queryTable$0):73 Queueing query: SELECT \"id\",\"\"\"test_column\"\"\" FROM \"public\".\"\"\"test_dq_table\"\"\""}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.d.j.s.AdaptiveStreamingQueryConfig(initialize):31 Set initial fetch size: 10 rows"}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitStartStreamStatus$1):155 STARTING -> public_\"test_dq_table\""}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590390212E12,"stream_status":{"stream_descriptor":{"name":"\"test_dq_table\"","namespace":"public"},"status":"STARTED"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitRunningStreamStatus$0):148 RUNNING -> public_\"test_dq_table\""}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590390212E12,"stream_status":{"stream_descriptor":{"name":"\"test_dq_table\"","namespace":"public"},"status":"RUNNING"}}}
+{"type":"LOG","log":{"level":"INFO","message":"INFO i.a.c.u.CompositeIterator(lambda$emitCompleteStreamStatus$2):162 COMPLETE -> public_\"test_dq_table\""}}
+{"type":"TRACE","trace":{"type":"STREAM_STATUS","emitted_at":1.684590390216E12,"stream_status":{"stream_descriptor":{"name":"\"test_dq_table\"","namespace":"public"},"status":"COMPLETE"}}}
+]]></system-out>
+  <system-err><![CDATA[]]></system-err>
+</testsuite>

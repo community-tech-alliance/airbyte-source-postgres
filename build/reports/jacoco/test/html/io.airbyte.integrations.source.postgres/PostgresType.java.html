@@ -1,0 +1,142 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PostgresType.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">source-postgres</a> &gt; <a href="index.source.html" class="el_package">io.airbyte.integrations.source.postgres</a> &gt; <span class="el_source">PostgresType.java</span></div><h1>PostgresType.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2023 Airbyte, Inc., all rights reserved.
+ */
+
+package io.airbyte.integrations.source.postgres;
+
+import java.sql.SQLType;
+import java.sql.Types;
+import java.util.Map;
+
+<span class="fc" id="L11">public enum PostgresType implements SQLType {</span>
+
+<span class="fc" id="L13">  BIT(Types.BIT),</span>
+<span class="fc" id="L14">  TINYINT(Types.TINYINT),</span>
+<span class="fc" id="L15">  SMALLINT(Types.SMALLINT),</span>
+<span class="fc" id="L16">  INTEGER(Types.INTEGER),</span>
+<span class="fc" id="L17">  BIGINT(Types.BIGINT),</span>
+<span class="fc" id="L18">  FLOAT(Types.FLOAT),</span>
+<span class="fc" id="L19">  REAL(Types.REAL),</span>
+<span class="fc" id="L20">  DOUBLE(Types.DOUBLE),</span>
+<span class="fc" id="L21">  NUMERIC(Types.NUMERIC),</span>
+<span class="fc" id="L22">  DECIMAL(Types.DECIMAL),</span>
+<span class="fc" id="L23">  CHAR(Types.CHAR),</span>
+<span class="fc" id="L24">  VARCHAR(Types.VARCHAR),</span>
+<span class="fc" id="L25">  LONGVARCHAR(Types.LONGVARCHAR),</span>
+<span class="fc" id="L26">  DATE(Types.DATE),</span>
+<span class="fc" id="L27">  TIME(Types.TIME),</span>
+<span class="fc" id="L28">  TIMESTAMP(Types.TIMESTAMP),</span>
+<span class="fc" id="L29">  BINARY(Types.BINARY),</span>
+<span class="fc" id="L30">  VARBINARY(Types.VARBINARY),</span>
+<span class="fc" id="L31">  LONGVARBINARY(Types.LONGVARBINARY),</span>
+<span class="fc" id="L32">  NULL(Types.NULL),</span>
+<span class="fc" id="L33">  OTHER(Types.OTHER),</span>
+<span class="fc" id="L34">  JAVA_OBJECT(Types.JAVA_OBJECT),</span>
+<span class="fc" id="L35">  DISTINCT(Types.DISTINCT),</span>
+<span class="fc" id="L36">  STRUCT(Types.STRUCT),</span>
+<span class="fc" id="L37">  ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L38">  BLOB(Types.BLOB),</span>
+<span class="fc" id="L39">  CLOB(Types.CLOB),</span>
+<span class="fc" id="L40">  REF(Types.REF),</span>
+<span class="fc" id="L41">  DATALINK(Types.DATALINK),</span>
+<span class="fc" id="L42">  BOOLEAN(Types.BOOLEAN),</span>
+<span class="fc" id="L43">  ROWID(Types.ROWID),</span>
+<span class="fc" id="L44">  NCHAR(Types.NCHAR),</span>
+<span class="fc" id="L45">  NVARCHAR(Types.NVARCHAR),</span>
+<span class="fc" id="L46">  LONGNVARCHAR(Types.LONGNVARCHAR),</span>
+<span class="fc" id="L47">  NCLOB(Types.NCLOB),</span>
+<span class="fc" id="L48">  SQLXML(Types.SQLXML),</span>
+<span class="fc" id="L49">  REF_CURSOR(Types.REF_CURSOR),</span>
+<span class="fc" id="L50">  TIME_WITH_TIMEZONE(Types.TIME_WITH_TIMEZONE),</span>
+<span class="fc" id="L51">  TIMESTAMP_WITH_TIMEZONE(Types.TIMESTAMP_WITH_TIMEZONE),</span>
+<span class="fc" id="L52">  VARCHAR_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L53">  TEXT_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L54">  INTEGER_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L55">  NUMERIC_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L56">  TIMESTAMPTZ_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L57">  TIMESTAMP_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L58">  TIMETZ_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L59">  TIME_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L60">  DATE_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L61">  BIT_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L62">  BOOL_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L63">  NAME_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L64">  CHAR_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L65">  BPCHAR_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L66">  INT4_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L67">  INT2_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L68">  INT8_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L69">  MONEY_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L70">  OID_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L71">  FLOAT4_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L72">  FLOAT8_ARRAY(Types.ARRAY),</span>
+<span class="fc" id="L73">  BYTEA_ARRAY(Types.ARRAY);</span>
+
+  /**
+   * The Integer value for the JDBCType. It maps to a value in {@code Types.java}
+   */
+  protected Integer type;
+
+  /**
+   * Constructor to specify the data type value from {@code Types) for
+   * this data type. @param type The value from {@code Types) for this data type
+   */
+<span class="fc" id="L84">  PostgresType(final Integer type) {</span>
+<span class="fc" id="L85">    this.type = type;</span>
+<span class="fc" id="L86">  }</span>
+
+  /**
+   * {@inheritDoc }
+   *
+   * @return The name of this {@code SQLType}.
+   */
+  public String getName() {
+<span class="nc" id="L94">    return name();</span>
+  }
+
+  /**
+   * Returns the name of the vendor that supports this data type.
+   *
+   * @return The name of the vendor for this data type which is {@literal java.sql} for JDBCType.
+   */
+  public String getVendor() {
+<span class="nc" id="L103">    return &quot;java.sql&quot;;</span>
+  }
+
+  /**
+   * Returns the vendor specific type number for the data type.
+   *
+   * @return An Integer representing the data type. For {@code JDBCType}, the value will be the same
+   *         value as in {@code Types} for the data type.
+   */
+  public Integer getVendorTypeNumber() {
+<span class="nc" id="L113">    return type;</span>
+  }
+
+  /**
+   * Returns the {@code JDBCType} that corresponds to the specified {@code Types} value
+   *
+   * @param type {@code Types} value
+   * @return The {@code JDBCType} constant
+   * @throws IllegalArgumentException if this enum type has no constant with the specified
+   *         {@code Types} value
+   * @see Types
+   */
+  public static PostgresType valueOf(final int type, final Map&lt;Integer, PostgresType&gt; postgresTypeMap) {
+<span class="pc bpc" id="L126" title="1 of 2 branches missed.">    if (postgresTypeMap.containsKey(type)) {</span>
+<span class="fc" id="L127">      return postgresTypeMap.get(type);</span>
+    }
+<span class="nc" id="L129">    throw new IllegalArgumentException(&quot;Type:&quot; + type + &quot; is not a valid &quot;</span>
+        + &quot;Types.java value.&quot;);
+  }
+
+  public static PostgresType safeGetJdbcType(final int columnTypeInt, final Map&lt;Integer, PostgresType&gt; postgresTypeMap) {
+    try {
+<span class="fc" id="L135">      return PostgresType.valueOf(columnTypeInt, postgresTypeMap);</span>
+<span class="nc" id="L136">    } catch (final Exception e) {</span>
+<span class="nc" id="L137">      return PostgresType.VARCHAR;</span>
+    }
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

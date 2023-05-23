@@ -1,0 +1,103 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PostgresCdcProperties.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">source-postgres</a> &gt; <a href="index.source.html" class="el_package">io.airbyte.integrations.source.postgres</a> &gt; <span class="el_source">PostgresCdcProperties.java</span></div><h1>PostgresCdcProperties.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2023 Airbyte, Inc., all rights reserved.
+ */
+
+package io.airbyte.integrations.source.postgres;
+
+import static io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.CLIENT_KEY_STORE_PASS;
+import static io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.CLIENT_KEY_STORE_URL;
+import static io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.SSL_MODE;
+import static io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.TRUST_KEY_STORE_PASS;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import io.airbyte.db.jdbc.JdbcDatabase;
+import io.airbyte.db.jdbc.JdbcUtils;
+import io.airbyte.integrations.debezium.internals.postgres.PostgresConverter;
+import io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.SslMode;
+import java.net.URI;
+import java.nio.file.Path;
+import java.time.Duration;
+import java.util.Properties;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+<span class="nc" id="L24">public class PostgresCdcProperties {</span>
+
+  private static final int HEARTBEAT_FREQUENCY_SEC = 10;
+<span class="fc" id="L27">  private static final Logger LOGGER = LoggerFactory.getLogger(PostgresCdcProperties.class);</span>
+
+  static Properties getDebeziumDefaultProperties(final JdbcDatabase database) {
+<span class="fc" id="L30">    final JsonNode sourceConfig = database.getSourceConfig();</span>
+<span class="fc" id="L31">    final Properties props = commonProperties(database);</span>
+<span class="fc" id="L32">    props.setProperty(&quot;plugin.name&quot;, PostgresUtils.getPluginValue(sourceConfig.get(&quot;replication_method&quot;)));</span>
+<span class="pc bpc" id="L33" title="1 of 2 branches missed.">    if (sourceConfig.has(&quot;snapshot_mode&quot;)) {</span>
+      // The parameter `snapshot_mode` is passed in test to simulate reading the WAL Logs directly and
+      // skip initial snapshot
+<span class="nc" id="L36">      props.setProperty(&quot;snapshot.mode&quot;, sourceConfig.get(&quot;snapshot_mode&quot;).asText());</span>
+    } else {
+<span class="fc" id="L38">      props.setProperty(&quot;snapshot.mode&quot;, &quot;initial&quot;);</span>
+    }
+
+<span class="fc" id="L41">    props.setProperty(&quot;slot.name&quot;, sourceConfig.get(&quot;replication_method&quot;).get(&quot;replication_slot&quot;).asText());</span>
+<span class="fc" id="L42">    props.setProperty(&quot;publication.name&quot;, sourceConfig.get(&quot;replication_method&quot;).get(&quot;publication&quot;).asText());</span>
+
+<span class="fc" id="L44">    props.setProperty(&quot;publication.autocreate.mode&quot;, &quot;disabled&quot;);</span>
+
+<span class="fc" id="L46">    return props;</span>
+  }
+
+  private static Properties commonProperties(final JdbcDatabase database) {
+<span class="fc" id="L50">    final JsonNode dbConfig = database.getDatabaseConfig();</span>
+<span class="fc" id="L51">    final JsonNode sourceConfig = database.getSourceConfig();</span>
+
+<span class="fc" id="L53">    final Properties props = new Properties();</span>
+<span class="fc" id="L54">    props.setProperty(&quot;connector.class&quot;, &quot;io.debezium.connector.postgresql.PostgresConnector&quot;);</span>
+
+<span class="fc" id="L56">    props.setProperty(&quot;converters&quot;, &quot;datetime&quot;);</span>
+<span class="fc" id="L57">    props.setProperty(&quot;datetime.type&quot;, PostgresConverter.class.getName());</span>
+<span class="fc" id="L58">    props.setProperty(&quot;include.unknown.datatypes&quot;, &quot;true&quot;);</span>
+<span class="fc" id="L59">    props.setProperty(&quot;heartbeat.interval.ms&quot;, Long.toString(Duration.ofSeconds(HEARTBEAT_FREQUENCY_SEC).toMillis()));</span>
+<span class="fc bfc" id="L60" title="All 2 branches covered.">    if (PostgresUtils.shouldFlushAfterSync(sourceConfig)) {</span>
+<span class="fc" id="L61">      props.setProperty(&quot;flush.lsn.source&quot;, &quot;false&quot;);</span>
+    }
+
+    // Check params for SSL connection in config and add properties for CDC SSL connection
+    // https://debezium.io/documentation/reference/2.1/connectors/postgresql.html#postgresql-property-database-sslmode
+<span class="pc bpc" id="L66" title="2 of 4 branches missed.">    if (!sourceConfig.has(JdbcUtils.SSL_KEY) || sourceConfig.get(JdbcUtils.SSL_KEY).asBoolean()) {</span>
+<span class="nc bnc" id="L67" title="All 4 branches missed.">      if (sourceConfig.has(JdbcUtils.SSL_MODE_KEY) &amp;&amp; sourceConfig.get(JdbcUtils.SSL_MODE_KEY).has(JdbcUtils.MODE_KEY)) {</span>
+
+<span class="nc bnc" id="L69" title="All 4 branches missed.">        if (dbConfig.has(SSL_MODE) &amp;&amp; !dbConfig.get(SSL_MODE).asText().isEmpty()) {</span>
+<span class="nc" id="L70">          LOGGER.debug(&quot;sslMode: {}&quot;, dbConfig.get(SSL_MODE).asText());</span>
+<span class="nc" id="L71">          props.setProperty(&quot;database.sslmode&quot;, PostgresSource.toSslJdbcParamInternal(SslMode.valueOf(dbConfig.get(SSL_MODE).asText())));</span>
+        }
+
+<span class="nc bnc" id="L74" title="All 4 branches missed.">        if (dbConfig.has(PostgresSource.CA_CERTIFICATE_PATH) &amp;&amp; !dbConfig.get(PostgresSource.CA_CERTIFICATE_PATH).asText().isEmpty()) {</span>
+<span class="nc" id="L75">          props.setProperty(&quot;database.sslrootcert&quot;, dbConfig.get(PostgresSource.CA_CERTIFICATE_PATH).asText());</span>
+        }
+
+<span class="nc bnc" id="L78" title="All 4 branches missed.">        if (dbConfig.has(TRUST_KEY_STORE_PASS) &amp;&amp; !dbConfig.get(TRUST_KEY_STORE_PASS).asText().isEmpty()) {</span>
+<span class="nc" id="L79">          props.setProperty(&quot;database.ssl.truststore.password&quot;, dbConfig.get(TRUST_KEY_STORE_PASS).asText());</span>
+        }
+
+<span class="nc bnc" id="L82" title="All 4 branches missed.">        if (dbConfig.has(CLIENT_KEY_STORE_URL) &amp;&amp; !dbConfig.get(CLIENT_KEY_STORE_URL).asText().isEmpty()) {</span>
+<span class="nc" id="L83">          props.setProperty(&quot;database.sslkey&quot;, Path.of(URI.create(dbConfig.get(CLIENT_KEY_STORE_URL).asText())).toString());</span>
+        }
+
+<span class="nc bnc" id="L86" title="All 4 branches missed.">        if (dbConfig.has(CLIENT_KEY_STORE_PASS) &amp;&amp; !dbConfig.get(CLIENT_KEY_STORE_PASS).asText().isEmpty()) {</span>
+<span class="nc" id="L87">          props.setProperty(&quot;database.sslpassword&quot;, dbConfig.get(CLIENT_KEY_STORE_PASS).asText());</span>
+        }
+      } else {
+<span class="nc" id="L90">        props.setProperty(&quot;database.sslmode&quot;, &quot;required&quot;);</span>
+      }
+    }
+<span class="fc" id="L93">    return props;</span>
+  }
+
+  static Properties getSnapshotProperties(final JdbcDatabase database) {
+<span class="fc" id="L97">    final Properties props = commonProperties(database);</span>
+<span class="fc" id="L98">    props.setProperty(&quot;snapshot.mode&quot;, &quot;initial_only&quot;);</span>
+<span class="fc" id="L99">    return props;</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,82 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PostgresQueryUtils.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">source-postgres</a> &gt; <a href="index.source.html" class="el_package">io.airbyte.integrations.source.postgres</a> &gt; <span class="el_source">PostgresQueryUtils.java</span></div><h1>PostgresQueryUtils.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2023 Airbyte, Inc., all rights reserved.
+ */
+
+package io.airbyte.integrations.source.postgres;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.base.Preconditions;
+import io.airbyte.db.jdbc.JdbcDatabase;
+import io.airbyte.db.jdbc.JdbcUtils;
+import java.sql.SQLException;
+import java.util.List;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+/**
+ * Utility class to define constants related to querying postgres
+ */
+<span class="nc" id="L19">public class PostgresQueryUtils {</span>
+
+<span class="fc" id="L21">  private static final Logger LOGGER = LoggerFactory.getLogger(PostgresQueryUtils.class);</span>
+
+  public static final String NULL_CURSOR_VALUE_WITH_SCHEMA_QUERY =
+      &quot;&quot;&quot;
+        SELECT
+          (EXISTS (SELECT FROM information_schema.columns WHERE table_schema = '%s' AND table_name = '%s' AND is_nullable = 'YES' AND column_name = '%s'))
+        AND
+          (EXISTS (SELECT from \&quot;%s\&quot;.\&quot;%s\&quot; where \&quot;%s\&quot; IS NULL LIMIT 1)) AS %s
+      &quot;&quot;&quot;;
+  public static final String NULL_CURSOR_VALUE_NO_SCHEMA_QUERY =
+      &quot;&quot;&quot;
+      SELECT
+        (EXISTS (SELECT FROM information_schema.columns WHERE table_name = '%s' AND is_nullable = 'YES' AND column_name = '%s'))
+      AND
+        (EXISTS (SELECT from \&quot;%s\&quot; where \&quot;%s\&quot; IS NULL LIMIT 1)) AS %s
+      &quot;&quot;&quot;;
+
+  public static final String TABLE_ESTIMATE_QUERY =
+      &quot;&quot;&quot;
+            SELECT (select reltuples::int8 as count from pg_class c JOIN pg_catalog.pg_namespace n ON n.oid=c.relnamespace where nspname='%s' AND relname='%s') AS %s,
+            pg_relation_size('%s') AS %s;
+      &quot;&quot;&quot;;
+
+  /**
+   * Creates query to understand the Xmin status.
+   */
+  public static final String XMIN_STATUS_QUERY =
+      &quot;&quot;&quot;
+            select (txid_snapshot_xmin(txid_current_snapshot()) &gt;&gt; 32) AS num_wraparound,
+            (txid_snapshot_xmin(txid_current_snapshot()) % (2^32)::bigint) AS xmin_xid_value,
+            txid_snapshot_xmin(txid_current_snapshot()) AS xmin_raw_value;
+      &quot;&quot;&quot;;
+
+  public static final String NUM_WRAPAROUND_COL = &quot;num_wraparound&quot;;
+
+  public static final String XMIN_XID_VALUE_COL = &quot;xmin_xid_value&quot;;
+
+  public static final String XMIN_RAW_VALUE_COL = &quot;xmin_raw_value&quot;;
+
+  public static final String ROW_COUNT_RESULT_COL = &quot;rowcount&quot;;
+
+  public static final String TOTAL_BYTES_RESULT_COL = &quot;totalbytes&quot;;
+
+  /**
+   * Logs the current xmin status : 1. The number of wraparounds the source DB has undergone. (These
+   * are the epoch bits in the xmin snapshot). 2. The 32-bit xmin value associated with the xmin
+   * snapshot. This is the value that is ultimately written and recorded on every row. 3. The raw
+   * value of the xmin snapshot (which is a combination of 1 and 2). If no wraparound has occurred,
+   * this should be the same as 2.
+   */
+  public static void logXminStatus(final JdbcDatabase database) throws SQLException {
+<span class="fc" id="L72">    LOGGER.debug(&quot;xmin status query: {}&quot;, XMIN_STATUS_QUERY);</span>
+<span class="fc" id="L73">    final List&lt;JsonNode&gt; jsonNodes = database.bufferedResultSetQuery(conn -&gt; conn.prepareStatement(XMIN_STATUS_QUERY).executeQuery(),</span>
+<span class="fc" id="L74">        resultSet -&gt; JdbcUtils.getDefaultSourceOperations().rowToJson(resultSet));</span>
+<span class="pc bpc" id="L75" title="1 of 2 branches missed.">    Preconditions.checkState(jsonNodes.size() == 1);</span>
+<span class="fc" id="L76">    final JsonNode result = jsonNodes.get(0);</span>
+<span class="fc" id="L77">    LOGGER.info(String.format(&quot;Xmin Status : {Number of wraparounds: %s, Xmin Transaction Value: %s, Xmin Raw Value: %s&quot;,</span>
+<span class="fc" id="L78">        result.get(NUM_WRAPAROUND_COL), result.get(XMIN_XID_VALUE_COL), result.get(XMIN_RAW_VALUE_COL)));</span>
+<span class="fc" id="L79">  }</span>
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>

@@ -1,0 +1,704 @@
+<?xml version="1.0" encoding="UTF-8"?><!DOCTYPE html PUBLIC "-//W3C//DTD XHTML 1.0 Strict//EN" "http://www.w3.org/TR/xhtml1/DTD/xhtml1-strict.dtd"><html xmlns="http://www.w3.org/1999/xhtml" lang="en"><head><meta http-equiv="Content-Type" content="text/html;charset=UTF-8"/><link rel="stylesheet" href="../jacoco-resources/report.css" type="text/css"/><link rel="shortcut icon" href="../jacoco-resources/report.gif" type="image/gif"/><title>PostgresSource.java</title><link rel="stylesheet" href="../jacoco-resources/prettify.css" type="text/css"/><script type="text/javascript" src="../jacoco-resources/prettify.js"></script></head><body onload="window['PR_TAB_WIDTH']=4;prettyPrint()"><div class="breadcrumb" id="breadcrumb"><span class="info"><a href="../jacoco-sessions.html" class="el_session">Sessions</a></span><a href="../index.html" class="el_report">source-postgres</a> &gt; <a href="index.source.html" class="el_package">io.airbyte.integrations.source.postgres</a> &gt; <span class="el_source">PostgresSource.java</span></div><h1>PostgresSource.java</h1><pre class="source lang-java linenums">/*
+ * Copyright (c) 2023 Airbyte, Inc., all rights reserved.
+ */
+
+package io.airbyte.integrations.source.postgres;
+
+import static io.airbyte.db.jdbc.JdbcConstants.JDBC_COLUMN_COLUMN_NAME;
+import static io.airbyte.db.jdbc.JdbcConstants.JDBC_INDEX_NAME;
+import static io.airbyte.db.jdbc.JdbcConstants.JDBC_INDEX_NON_UNIQUE;
+import static io.airbyte.db.jdbc.JdbcUtils.AMPERSAND;
+import static io.airbyte.db.jdbc.JdbcUtils.EQUALS;
+import static io.airbyte.db.jdbc.JdbcUtils.PLATFORM_DATA_INCREASE_FACTOR;
+import static io.airbyte.integrations.debezium.AirbyteDebeziumHandler.shouldUseCDC;
+import static io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.CLIENT_KEY_STORE_PASS;
+import static io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.CLIENT_KEY_STORE_URL;
+import static io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.PARAM_CA_CERTIFICATE;
+import static io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.parseSSLConfig;
+import static io.airbyte.integrations.source.postgres.PostgresQueryUtils.NULL_CURSOR_VALUE_NO_SCHEMA_QUERY;
+import static io.airbyte.integrations.source.postgres.PostgresQueryUtils.NULL_CURSOR_VALUE_WITH_SCHEMA_QUERY;
+import static io.airbyte.integrations.source.postgres.PostgresQueryUtils.ROW_COUNT_RESULT_COL;
+import static io.airbyte.integrations.source.postgres.PostgresQueryUtils.TABLE_ESTIMATE_QUERY;
+import static io.airbyte.integrations.source.postgres.PostgresQueryUtils.TOTAL_BYTES_RESULT_COL;
+import static io.airbyte.integrations.source.relationaldb.RelationalDbQueryUtils.getFullyQualifiedTableNameWithQuoting;
+import static io.airbyte.integrations.source.relationaldb.RelationalDbQueryUtils.getIdentifierWithQuoting;
+import static io.airbyte.integrations.util.PostgresSslConnectionUtils.PARAM_SSL_MODE;
+import static java.util.stream.Collectors.toList;
+import static java.util.stream.Collectors.toSet;
+
+import com.fasterxml.jackson.databind.JsonNode;
+import com.google.common.annotations.VisibleForTesting;
+import com.google.common.base.Preconditions;
+import com.google.common.collect.ImmutableMap;
+import com.google.common.collect.ImmutableSet;
+import datadog.trace.api.Trace;
+import io.airbyte.commons.exceptions.ConfigErrorException;
+import io.airbyte.commons.features.EnvVariableFeatureFlags;
+import io.airbyte.commons.features.FeatureFlags;
+import io.airbyte.commons.functional.CheckedConsumer;
+import io.airbyte.commons.functional.CheckedFunction;
+import io.airbyte.commons.json.Jsons;
+import io.airbyte.commons.util.AutoCloseableIterator;
+import io.airbyte.commons.util.AutoCloseableIterators;
+import io.airbyte.db.factory.DatabaseDriver;
+import io.airbyte.db.jdbc.JdbcDatabase;
+import io.airbyte.db.jdbc.JdbcUtils;
+import io.airbyte.db.jdbc.streaming.AdaptiveStreamingQueryConfig;
+import io.airbyte.integrations.base.AirbyteTraceMessageUtility;
+import io.airbyte.integrations.base.IntegrationRunner;
+import io.airbyte.integrations.base.Source;
+import io.airbyte.integrations.base.ssh.SshWrappedSource;
+import io.airbyte.integrations.debezium.AirbyteDebeziumHandler;
+import io.airbyte.integrations.debezium.internals.postgres.PostgresCdcTargetPosition;
+import io.airbyte.integrations.debezium.internals.postgres.PostgresDebeziumStateUtil;
+import io.airbyte.integrations.debezium.internals.postgres.PostgresReplicationConnection;
+import io.airbyte.integrations.source.jdbc.AbstractJdbcSource;
+import io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils;
+import io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.SslMode;
+import io.airbyte.integrations.source.jdbc.dto.JdbcPrivilegeDto;
+import io.airbyte.integrations.source.relationaldb.CursorInfo;
+import io.airbyte.integrations.source.relationaldb.TableInfo;
+import io.airbyte.integrations.source.relationaldb.state.StateManager;
+import io.airbyte.integrations.util.HostPortResolver;
+import io.airbyte.protocol.models.CommonField;
+import io.airbyte.protocol.models.v0.AirbyteCatalog;
+import io.airbyte.protocol.models.v0.AirbyteConnectionStatus;
+import io.airbyte.protocol.models.v0.AirbyteConnectionStatus.Status;
+import io.airbyte.protocol.models.v0.AirbyteEstimateTraceMessage.Type;
+import io.airbyte.protocol.models.v0.AirbyteMessage;
+import io.airbyte.protocol.models.v0.AirbyteStateMessage.AirbyteStateType;
+import io.airbyte.protocol.models.v0.AirbyteStream;
+import io.airbyte.protocol.models.v0.AirbyteStreamNameNamespacePair;
+import io.airbyte.protocol.models.v0.ConfiguredAirbyteCatalog;
+import io.airbyte.protocol.models.v0.ConfiguredAirbyteStream;
+import java.net.URI;
+import java.net.URISyntaxException;
+import java.nio.file.Path;
+import java.sql.Connection;
+import java.sql.PreparedStatement;
+import java.sql.ResultSet;
+import java.sql.SQLException;
+import java.time.Duration;
+import java.time.Instant;
+import java.util.ArrayList;
+import java.util.Collections;
+import java.util.List;
+import java.util.Map;
+import java.util.Objects;
+import java.util.OptionalLong;
+import java.util.Set;
+import java.util.function.Supplier;
+import java.util.stream.Collectors;
+import org.apache.commons.lang3.StringUtils;
+import org.slf4j.Logger;
+import org.slf4j.LoggerFactory;
+
+public class PostgresSource extends AbstractJdbcSource&lt;PostgresType&gt; implements Source {
+
+<span class="fc" id="L98">  private static final Logger LOGGER = LoggerFactory.getLogger(PostgresSource.class);</span>
+  private static final int INTERMEDIATE_STATE_EMISSION_FREQUENCY = 10_000;
+  public static final String PARAM_SSLMODE = &quot;sslmode&quot;;
+  public static final String SSL_MODE = &quot;ssl_mode&quot;;
+  public static final String SSL_ROOT_CERT = &quot;sslrootcert&quot;;
+
+<span class="fc" id="L104">  static final String DRIVER_CLASS = DatabaseDriver.POSTGRESQL.getDriverClassName();</span>
+  public static final String CA_CERTIFICATE_PATH = &quot;ca_certificate_path&quot;;
+  public static final String SSL_KEY = &quot;sslkey&quot;;
+  public static final String SSL_PASSWORD = &quot;sslpassword&quot;;
+  public static final String MODE = &quot;mode&quot;;
+
+  private List&lt;String&gt; schemas;
+
+  private Set&lt;AirbyteStreamNameNamespacePair&gt; publicizedTablesInCdc;
+  private final FeatureFlags featureFlags;
+<span class="fc" id="L114">  private static final Set&lt;String&gt; INVALID_CDC_SSL_MODES = ImmutableSet.of(&quot;allow&quot;, &quot;prefer&quot;);</span>
+  private int stateEmissionFrequency;
+
+  public static Source sshWrappedSource() {
+<span class="nc" id="L118">    return new SshWrappedSource(new PostgresSource(), JdbcUtils.HOST_LIST_KEY, JdbcUtils.PORT_LIST_KEY, &quot;security&quot;);</span>
+  }
+
+  PostgresSource() {
+<span class="fc" id="L122">    super(DRIVER_CLASS, AdaptiveStreamingQueryConfig::new, new PostgresSourceOperations());</span>
+<span class="fc" id="L123">    this.featureFlags = new EnvVariableFeatureFlags();</span>
+<span class="fc" id="L124">    this.stateEmissionFrequency = INTERMEDIATE_STATE_EMISSION_FREQUENCY;</span>
+<span class="fc" id="L125">  }</span>
+
+  @Override
+  public JsonNode toDatabaseConfig(final JsonNode config) {
+<span class="fc" id="L129">    final List&lt;String&gt; additionalParameters = new ArrayList&lt;&gt;();</span>
+
+<span class="fc" id="L131">    final String encodedDatabaseName = HostPortResolver.encodeValue(config.get(JdbcUtils.DATABASE_KEY).asText());</span>
+
+<span class="fc" id="L133">    final StringBuilder jdbcUrl = new StringBuilder(String.format(&quot;jdbc:postgresql://%s:%s/%s?&quot;,</span>
+<span class="fc" id="L134">        config.get(JdbcUtils.HOST_KEY).asText(),</span>
+<span class="fc" id="L135">        config.get(JdbcUtils.PORT_KEY).asText(),</span>
+        encodedDatabaseName));
+
+<span class="pc bpc" id="L138" title="3 of 4 branches missed.">    if (config.get(JdbcUtils.JDBC_URL_PARAMS_KEY) != null &amp;&amp; !config.get(JdbcUtils.JDBC_URL_PARAMS_KEY).asText().isEmpty()) {</span>
+<span class="nc" id="L139">      jdbcUrl.append(config.get(JdbcUtils.JDBC_URL_PARAMS_KEY).asText()).append(AMPERSAND);</span>
+    }
+
+<span class="fc" id="L142">    final Map&lt;String, String&gt; sslParameters = parseSSLConfig(config);</span>
+<span class="pc bpc" id="L143" title="1 of 4 branches missed.">    if (config.has(PARAM_SSL_MODE) &amp;&amp; config.get(PARAM_SSL_MODE).has(PARAM_CA_CERTIFICATE)) {</span>
+<span class="nc" id="L144">      sslParameters.put(CA_CERTIFICATE_PATH,</span>
+<span class="nc" id="L145">          JdbcSSLConnectionUtils.fileFromCertPem(config.get(PARAM_SSL_MODE).get(PARAM_CA_CERTIFICATE).asText()).toString());</span>
+<span class="nc" id="L146">      LOGGER.debug(&quot;root ssl ca crt file: {}&quot;, sslParameters.get(CA_CERTIFICATE_PATH));</span>
+    }
+
+<span class="pc bpc" id="L149" title="1 of 4 branches missed.">    if (config.has(JdbcUtils.SCHEMAS_KEY) &amp;&amp; config.get(JdbcUtils.SCHEMAS_KEY).isArray()) {</span>
+<span class="fc" id="L150">      schemas = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L151" title="All 2 branches covered.">      for (final JsonNode schema : config.get(JdbcUtils.SCHEMAS_KEY)) {</span>
+<span class="fc" id="L152">        schemas.add(schema.asText());</span>
+<span class="fc" id="L153">      }</span>
+    }
+
+<span class="pc bpc" id="L156" title="1 of 4 branches missed.">    if (schemas != null &amp;&amp; !schemas.isEmpty()) {</span>
+<span class="fc" id="L157">      additionalParameters.add(&quot;currentSchema=&quot; + String.join(&quot;,&quot;, schemas));</span>
+    }
+
+<span class="fc" id="L160">    additionalParameters.forEach(x -&gt; jdbcUrl.append(x).append(&quot;&amp;&quot;));</span>
+
+<span class="fc" id="L162">    jdbcUrl.append(toJDBCQueryParams(sslParameters));</span>
+<span class="fc" id="L163">    LOGGER.debug(&quot;jdbc url: {}&quot;, jdbcUrl.toString());</span>
+<span class="fc" id="L164">    final ImmutableMap.Builder&lt;Object, Object&gt; configBuilder = ImmutableMap.builder()</span>
+<span class="fc" id="L165">        .put(JdbcUtils.USERNAME_KEY, config.get(JdbcUtils.USERNAME_KEY).asText())</span>
+<span class="fc" id="L166">        .put(JdbcUtils.JDBC_URL_KEY, jdbcUrl.toString());</span>
+
+<span class="fc bfc" id="L168" title="All 2 branches covered.">    if (config.has(JdbcUtils.PASSWORD_KEY)) {</span>
+<span class="fc" id="L169">      configBuilder.put(JdbcUtils.PASSWORD_KEY, config.get(JdbcUtils.PASSWORD_KEY).asText());</span>
+    }
+
+<span class="fc" id="L172">    configBuilder.putAll(sslParameters);</span>
+
+<span class="fc" id="L174">    return Jsons.jsonNode(configBuilder.build());</span>
+  }
+
+  public String toJDBCQueryParams(final Map&lt;String, String&gt; sslParams) {
+<span class="pc bpc" id="L178" title="1 of 2 branches missed.">    return Objects.isNull(sslParams) ? &quot;&quot;</span>
+<span class="fc" id="L179">        : sslParams.entrySet()</span>
+<span class="fc" id="L180">            .stream()</span>
+<span class="fc" id="L181">            .map((entry) -&gt; {</span>
+              try {
+<span class="pc bpc" id="L183" title="4 of 5 branches missed.">                final String result = switch (entry.getKey()) {</span>
+<span class="fc" id="L184">                  case JdbcSSLConnectionUtils.SSL_MODE -&gt; PARAM_SSLMODE + EQUALS + toSslJdbcParam(SslMode.valueOf(entry.getValue()));</span>
+<span class="nc" id="L185">                  case CA_CERTIFICATE_PATH -&gt; SSL_ROOT_CERT + EQUALS + entry.getValue();</span>
+<span class="nc" id="L186">                  case CLIENT_KEY_STORE_URL -&gt; SSL_KEY + EQUALS + Path.of(new URI(entry.getValue()));</span>
+<span class="nc" id="L187">                  case CLIENT_KEY_STORE_PASS -&gt; SSL_PASSWORD + EQUALS + entry.getValue();</span>
+<span class="pc" id="L188">                  default -&gt; &quot;&quot;;</span>
+                };
+<span class="fc" id="L190">                return result;</span>
+<span class="nc" id="L191">              } catch (final URISyntaxException e) {</span>
+<span class="nc" id="L192">                throw new IllegalArgumentException(&quot;unable to convert to URI&quot;, e);</span>
+              }
+            })
+<span class="pc bpc" id="L195" title="2 of 4 branches missed.">            .filter(s -&gt; Objects.nonNull(s) &amp;&amp; !s.isEmpty())</span>
+<span class="fc" id="L196">            .collect(Collectors.joining(JdbcUtils.AMPERSAND));</span>
+  }
+
+  @Override
+  public Set&lt;String&gt; getExcludedInternalNameSpaces() {
+<span class="fc" id="L201">    return Set.of(&quot;information_schema&quot;, &quot;pg_catalog&quot;, &quot;pg_internal&quot;, &quot;catalog_history&quot;);</span>
+  }
+
+  @Override
+  protected Set&lt;String&gt; getExcludedViews() {
+<span class="fc" id="L206">    return Set.of(&quot;pg_stat_statements&quot;, &quot;pg_stat_statements_info&quot;);</span>
+  }
+
+  @Override
+  protected void logPreSyncDebugData(final JdbcDatabase database, final ConfiguredAirbyteCatalog catalog)
+      throws SQLException {
+<span class="fc" id="L212">    super.logPreSyncDebugData(database, catalog);</span>
+<span class="fc bfc" id="L213" title="All 2 branches covered.">    for (final ConfiguredAirbyteStream stream : catalog.getStreams()) {</span>
+<span class="fc" id="L214">      final String streamName = stream.getStream().getName();</span>
+<span class="fc" id="L215">      final String schemaName = stream.getStream().getNamespace();</span>
+<span class="fc" id="L216">      final ResultSet indexInfo = database.getMetaData().getIndexInfo(null,</span>
+          schemaName,
+          streamName,
+          false,
+          false);
+<span class="fc" id="L221">      LOGGER.info(&quot;Discovering indexes for schema \&quot;{}\&quot;, table \&quot;{}\&quot;&quot;, schemaName, streamName);</span>
+<span class="fc bfc" id="L222" title="All 2 branches covered.">      while (indexInfo.next()) {</span>
+<span class="fc" id="L223">        LOGGER.info(&quot;Index name: {}, Column: {}, Unique: {}&quot;,</span>
+<span class="fc" id="L224">            indexInfo.getString(JDBC_INDEX_NAME),</span>
+<span class="fc" id="L225">            indexInfo.getString(JDBC_COLUMN_COLUMN_NAME),</span>
+<span class="fc bfc" id="L226" title="All 2 branches covered.">            !indexInfo.getBoolean(JDBC_INDEX_NON_UNIQUE));</span>
+      }
+<span class="fc" id="L228">      indexInfo.close();</span>
+<span class="fc" id="L229">    }</span>
+<span class="fc" id="L230">    PostgresQueryUtils.logXminStatus(database);</span>
+<span class="fc" id="L231">  }</span>
+
+  @Override
+  @Trace(operationName = DISCOVER_TRACE_OPERATION_NAME)
+  public AirbyteCatalog discover(final JsonNode config) throws Exception {
+<span class="fc" id="L236">    final AirbyteCatalog catalog = super.discover(config);</span>
+
+<span class="fc bfc" id="L238" title="All 2 branches covered.">    if (PostgresUtils.isCdc(config)) {</span>
+<span class="fc" id="L239">      final List&lt;AirbyteStream&gt; streams = catalog.getStreams().stream()</span>
+<span class="fc" id="L240">          .map(PostgresCdcCatalogHelper::overrideSyncModes)</span>
+<span class="fc" id="L241">          .map(PostgresCdcCatalogHelper::removeIncrementalWithoutPk)</span>
+<span class="fc" id="L242">          .map(PostgresCdcCatalogHelper::setIncrementalToSourceDefined)</span>
+<span class="fc" id="L243">          .map(PostgresCdcCatalogHelper::addCdcMetadataColumns)</span>
+          // If we're in CDC mode and a stream is not in the publication, the user should only be able to sync
+          // this in FULL_REFRESH mode
+<span class="fc" id="L246">          .map(stream -&gt; PostgresCdcCatalogHelper.setFullRefreshForNonPublicationStreams(stream, publicizedTablesInCdc))</span>
+<span class="fc" id="L247">          .collect(toList());</span>
+
+<span class="fc" id="L249">      catalog.setStreams(streams);</span>
+    }
+
+<span class="fc" id="L252">    return catalog;</span>
+  }
+
+  @Override
+  public JdbcDatabase createDatabase(final JsonNode config) throws SQLException {
+<span class="fc" id="L257">    final JdbcDatabase database = super.createDatabase(config);</span>
+<span class="fc" id="L258">    this.publicizedTablesInCdc = PostgresCdcCatalogHelper.getPublicizedTables(database);</span>
+<span class="fc" id="L259">    return database;</span>
+  }
+
+  @Override
+  public List&lt;TableInfo&lt;CommonField&lt;PostgresType&gt;&gt;&gt; discoverInternal(final JdbcDatabase database) throws Exception {
+<span class="fc" id="L264">    return discoverRawTables(database);</span>
+  }
+
+  public List&lt;TableInfo&lt;CommonField&lt;PostgresType&gt;&gt;&gt; discoverRawTables(final JdbcDatabase database) throws Exception {
+<span class="pc bpc" id="L268" title="2 of 4 branches missed.">    if (schemas != null &amp;&amp; !schemas.isEmpty()) {</span>
+      // process explicitly selected (from UI) schemas
+<span class="fc" id="L270">      final List&lt;TableInfo&lt;CommonField&lt;PostgresType&gt;&gt;&gt; internals = new ArrayList&lt;&gt;();</span>
+<span class="fc bfc" id="L271" title="All 2 branches covered.">      for (final String schema : schemas) {</span>
+<span class="fc" id="L272">        LOGGER.debug(&quot;Checking schema: {}&quot;, schema);</span>
+<span class="fc" id="L273">        final List&lt;TableInfo&lt;CommonField&lt;PostgresType&gt;&gt;&gt; tables = super.discoverInternal(database, schema);</span>
+<span class="fc" id="L274">        internals.addAll(tables);</span>
+<span class="fc bfc" id="L275" title="All 2 branches covered.">        for (final TableInfo&lt;CommonField&lt;PostgresType&gt;&gt; table : tables) {</span>
+<span class="fc" id="L276">          LOGGER.debug(&quot;Found table: {}.{}&quot;, table.getNameSpace(), table.getName());</span>
+<span class="fc" id="L277">        }</span>
+<span class="fc" id="L278">      }</span>
+<span class="fc" id="L279">      return internals;</span>
+    } else {
+<span class="nc" id="L281">      LOGGER.info(&quot;No schemas explicitly set on UI to process, so will process all of existing schemas in DB&quot;);</span>
+<span class="nc" id="L282">      return super.discoverInternal(database);</span>
+    }
+  }
+
+  @VisibleForTesting
+  List&lt;JsonNode&gt; getReplicationSlot(final JdbcDatabase database, final JsonNode config) {
+    try {
+<span class="fc" id="L289">      return database.queryJsons(connection -&gt; {</span>
+<span class="fc" id="L290">        final String sql = &quot;SELECT * FROM pg_replication_slots WHERE slot_name = ? AND plugin = ? AND database = ?&quot;;</span>
+<span class="fc" id="L291">        final PreparedStatement ps = connection.prepareStatement(sql);</span>
+<span class="fc" id="L292">        ps.setString(1, config.get(&quot;replication_method&quot;).get(&quot;replication_slot&quot;).asText());</span>
+<span class="fc" id="L293">        ps.setString(2, PostgresUtils.getPluginValue(config.get(&quot;replication_method&quot;)));</span>
+<span class="fc" id="L294">        ps.setString(3, config.get(JdbcUtils.DATABASE_KEY).asText());</span>
+
+<span class="fc" id="L296">        LOGGER.info(&quot;Attempting to find the named replication slot using the query: {}&quot;, ps);</span>
+
+<span class="fc" id="L298">        return ps;</span>
+<span class="fc" id="L299">      }, sourceOperations::rowToJson);</span>
+<span class="nc" id="L300">    } catch (final SQLException e) {</span>
+<span class="nc" id="L301">      throw new RuntimeException(e);</span>
+    }
+  }
+
+  @Trace(operationName = CHECK_TRACE_OPERATION_NAME)
+  @Override
+  public List&lt;CheckedConsumer&lt;JdbcDatabase, Exception&gt;&gt; getCheckOperations(final JsonNode config)
+      throws Exception {
+<span class="fc" id="L309">    final List&lt;CheckedConsumer&lt;JdbcDatabase, Exception&gt;&gt; checkOperations = new ArrayList&lt;&gt;(</span>
+<span class="fc" id="L310">        super.getCheckOperations(config));</span>
+
+<span class="fc bfc" id="L312" title="All 2 branches covered.">    if (PostgresUtils.isCdc(config)) {</span>
+<span class="fc" id="L313">      checkOperations.add(database -&gt; {</span>
+<span class="fc" id="L314">        final List&lt;JsonNode&gt; matchingSlots = getReplicationSlot(database, config);</span>
+
+<span class="fc bfc" id="L316" title="All 2 branches covered.">        if (matchingSlots.size() != 1) {</span>
+<span class="fc" id="L317">          throw new ConfigErrorException(</span>
+<span class="fc" id="L318">              &quot;Expected exactly one replication slot but found &quot; + matchingSlots.size()</span>
+                  + &quot;. Please read the docs and add a replication slot to your database.&quot;);
+        }
+
+<span class="fc" id="L322">      });</span>
+
+<span class="fc" id="L324">      checkOperations.add(database -&gt; {</span>
+<span class="fc" id="L325">        final List&lt;JsonNode&gt; matchingPublications = database.queryJsons(connection -&gt; {</span>
+<span class="fc" id="L326">          final PreparedStatement ps = connection.prepareStatement(&quot;SELECT * FROM pg_publication WHERE pubname = ?&quot;);</span>
+<span class="fc" id="L327">          ps.setString(1, config.get(&quot;replication_method&quot;).get(&quot;publication&quot;).asText());</span>
+<span class="fc" id="L328">          LOGGER.info(&quot;Attempting to find the publication using the query: &quot; + ps);</span>
+<span class="fc" id="L329">          return ps;</span>
+<span class="fc" id="L330">        }, sourceOperations::rowToJson);</span>
+
+<span class="fc bfc" id="L332" title="All 2 branches covered.">        if (matchingPublications.size() != 1) {</span>
+<span class="fc" id="L333">          throw new ConfigErrorException(</span>
+<span class="fc" id="L334">              &quot;Expected exactly one publication but found &quot; + matchingPublications.size()</span>
+                  + &quot;. Please read the docs and add a publication to your database.&quot;);
+        }
+
+<span class="fc" id="L338">      });</span>
+
+<span class="fc" id="L340">      checkOperations.add(database -&gt; {</span>
+<span class="fc" id="L341">        PostgresUtils.checkFirstRecordWaitTime(config);</span>
+<span class="fc" id="L342">      });</span>
+
+      // Verify that a CDC connection can be created
+<span class="fc" id="L345">      checkOperations.add(database -&gt; {</span>
+        /**
+         * TODO: Next line is required for SSL connections so the JDBC_URL is set with all required
+         * parameters. This needs to be handle by createConnection function instead. Created issue
+         * https://github.com/airbytehq/airbyte/issues/23380.
+         */
+<span class="fc" id="L351">        final JsonNode databaseConfig = database.getDatabaseConfig();</span>
+        // Empty try statement as we only need to verify that the connection can be created.
+<span class="pc bpc" id="L353" title="1 of 2 branches missed.">        try (final Connection connection = PostgresReplicationConnection.createConnection(databaseConfig)) {}</span>
+<span class="fc" id="L354">      });</span>
+    }
+
+<span class="fc" id="L357">    return checkOperations;</span>
+  }
+
+  @Override
+  public List&lt;AutoCloseableIterator&lt;AirbyteMessage&gt;&gt; getIncrementalIterators(final JdbcDatabase database,
+                                                                             final ConfiguredAirbyteCatalog catalog,
+                                                                             final Map&lt;String, TableInfo&lt;CommonField&lt;PostgresType&gt;&gt;&gt; tableNameToTable,
+                                                                             final StateManager stateManager,
+                                                                             final Instant emittedAt) {
+<span class="fc" id="L366">    final JsonNode sourceConfig = database.getSourceConfig();</span>
+<span class="pc bpc" id="L367" title="1 of 4 branches missed.">    if (PostgresUtils.isCdc(sourceConfig) &amp;&amp; shouldUseCDC(catalog)) {</span>
+<span class="fc" id="L368">      final Duration firstRecordWaitTime = PostgresUtils.getFirstRecordWaitTime(sourceConfig);</span>
+<span class="fc" id="L369">      LOGGER.info(&quot;First record waiting time: {} seconds&quot;, firstRecordWaitTime.getSeconds());</span>
+
+<span class="fc" id="L371">      final PostgresDebeziumStateUtil postgresDebeziumStateUtil = new PostgresDebeziumStateUtil();</span>
+      final JsonNode state =
+<span class="pc bpc" id="L373" title="1 of 4 branches missed.">          (stateManager.getCdcStateManager().getCdcState() == null || stateManager.getCdcStateManager().getCdcState().getState() == null) ? null</span>
+<span class="fc" id="L374">              : Jsons.clone(stateManager.getCdcStateManager().getCdcState().getState());</span>
+
+<span class="fc" id="L376">      final OptionalLong savedOffset = postgresDebeziumStateUtil.savedOffset(</span>
+<span class="fc" id="L377">          Jsons.clone(PostgresCdcProperties.getDebeziumDefaultProperties(database)),</span>
+          catalog,
+          state,
+          sourceConfig);
+
+      // We should always be able to extract offset out of state if it's not null
+<span class="pc bpc" id="L383" title="1 of 4 branches missed.">      if (state != null &amp;&amp; savedOffset.isEmpty()) {</span>
+<span class="nc" id="L384">        throw new RuntimeException(</span>
+<span class="nc" id="L385">            &quot;Unable extract the offset out of state, State mutation might not be working. &quot; + state.asText());</span>
+      }
+
+<span class="fc" id="L388">      final boolean savedOffsetAfterReplicationSlotLSN = postgresDebeziumStateUtil.isSavedOffsetAfterReplicationSlotLSN(</span>
+          // We can assume that there will be only 1 replication slot cause before the sync starts for
+          // Postgres CDC,
+          // we run all the check operations and one of the check validates that the replication slot exists
+          // and has only 1 entry
+<span class="fc" id="L393">          getReplicationSlot(database, sourceConfig).get(0),</span>
+          savedOffset);
+
+<span class="fc bfc" id="L396" title="All 2 branches covered.">      if (!savedOffsetAfterReplicationSlotLSN) {</span>
+<span class="fc" id="L397">        LOGGER.warn(&quot;Saved offset is before Replication slot's confirmed_flush_lsn, Airbyte will trigger sync from scratch&quot;);</span>
+<span class="fc bfc" id="L398" title="All 2 branches covered.">      } else if (PostgresUtils.shouldFlushAfterSync(sourceConfig)) {</span>
+<span class="fc" id="L399">        postgresDebeziumStateUtil.commitLSNToPostgresDatabase(database.getDatabaseConfig(),</span>
+            savedOffset,
+<span class="fc" id="L401">            sourceConfig.get(&quot;replication_method&quot;).get(&quot;replication_slot&quot;).asText(),</span>
+<span class="fc" id="L402">            sourceConfig.get(&quot;replication_method&quot;).get(&quot;publication&quot;).asText(),</span>
+<span class="fc" id="L403">            PostgresUtils.getPluginValue(sourceConfig.get(&quot;replication_method&quot;)));</span>
+      }
+
+<span class="fc" id="L406">      final AirbyteDebeziumHandler&lt;Long&gt; handler = new AirbyteDebeziumHandler&lt;&gt;(sourceConfig,</span>
+<span class="fc" id="L407">          PostgresCdcTargetPosition.targetPosition(database), false, firstRecordWaitTime);</span>
+<span class="fc" id="L408">      final PostgresCdcStateHandler postgresCdcStateHandler = new PostgresCdcStateHandler(stateManager);</span>
+<span class="fc" id="L409">      final List&lt;ConfiguredAirbyteStream&gt; streamsToSnapshot = identifyStreamsToSnapshot(catalog, stateManager);</span>
+<span class="fc" id="L410">      final Supplier&lt;AutoCloseableIterator&lt;AirbyteMessage&gt;&gt; incrementalIteratorSupplier = () -&gt; handler.getIncrementalIterators(catalog,</span>
+<span class="fc bfc" id="L411" title="All 2 branches covered.">          new PostgresCdcSavedInfoFetcher(savedOffsetAfterReplicationSlotLSN ? stateManager.getCdcStateManager().getCdcState() : null),</span>
+          postgresCdcStateHandler,
+          new PostgresCdcConnectorMetadataInjector(),
+<span class="fc" id="L414">          PostgresCdcProperties.getDebeziumDefaultProperties(database),</span>
+          emittedAt,
+          false);
+<span class="fc bfc" id="L417" title="All 4 branches covered.">      if (!savedOffsetAfterReplicationSlotLSN || streamsToSnapshot.isEmpty()) {</span>
+<span class="fc" id="L418">        return Collections.singletonList(incrementalIteratorSupplier.get());</span>
+      }
+
+<span class="fc" id="L421">      final AutoCloseableIterator&lt;AirbyteMessage&gt; snapshotIterator = handler.getSnapshotIterators(</span>
+<span class="fc" id="L422">          new ConfiguredAirbyteCatalog().withStreams(streamsToSnapshot), new PostgresCdcConnectorMetadataInjector(),</span>
+<span class="fc" id="L423">          PostgresCdcProperties.getSnapshotProperties(database), postgresCdcStateHandler, emittedAt);</span>
+<span class="fc" id="L424">      return Collections.singletonList(</span>
+<span class="fc" id="L425">          AutoCloseableIterators.concatWithEagerClose(AirbyteTraceMessageUtility::emitStreamStatusTrace, snapshotIterator,</span>
+<span class="fc" id="L426">              AutoCloseableIterators.lazyIterator(incrementalIteratorSupplier, null)));</span>
+
+    } else {
+<span class="fc" id="L429">      return super.getIncrementalIterators(database, catalog, tableNameToTable, stateManager, emittedAt);</span>
+    }
+  }
+
+  @Override
+  public Set&lt;JdbcPrivilegeDto&gt; getPrivilegesTableForCurrentUser(final JdbcDatabase database,
+                                                                final String schema)
+      throws SQLException {
+<span class="fc" id="L437">    final CheckedFunction&lt;Connection, PreparedStatement, SQLException&gt; statementCreator = connection -&gt; {</span>
+<span class="fc" id="L438">      final PreparedStatement ps = connection.prepareStatement(</span>
+          &quot;&quot;&quot;
+                 SELECT nspname as table_schema,
+                        relname as table_name
+                 FROM   pg_class c
+                 JOIN   pg_namespace n on c.relnamespace = n.oid
+                 WHERE  has_table_privilege(c.oid, 'SELECT')
+                 AND    has_schema_privilege(current_user, nspname, 'USAGE')
+                 -- r = ordinary table, i = index, S = sequence, t = TOAST table, v = view, m = materialized view, c = composite type, f = foreign table, p = partitioned table, I = partitioned index
+                 AND    relkind in ('r', 'm', 'v', 't', 'f', 'p')
+                 and    ((? is null) OR nspname = ?)
+          &quot;&quot;&quot;);
+<span class="fc" id="L450">      ps.setString(1, schema);</span>
+<span class="fc" id="L451">      ps.setString(2, schema);</span>
+<span class="fc" id="L452">      return ps;</span>
+    };
+
+<span class="fc" id="L455">    return database.queryJsons(statementCreator, sourceOperations::rowToJson)</span>
+<span class="fc" id="L456">        .stream()</span>
+<span class="fc" id="L457">        .map(e -&gt; JdbcPrivilegeDto.builder()</span>
+<span class="fc" id="L458">            .schemaName(e.get(&quot;table_schema&quot;).asText())</span>
+<span class="fc" id="L459">            .tableName(e.get(&quot;table_name&quot;).asText())</span>
+<span class="fc" id="L460">            .build())</span>
+<span class="fc" id="L461">        .collect(toSet());</span>
+  }
+
+  @VisibleForTesting
+  static String getUsername(final JsonNode databaseConfig) {
+<span class="fc" id="L466">    final String jdbcUrl = databaseConfig.get(JdbcUtils.JDBC_URL_KEY).asText();</span>
+<span class="fc" id="L467">    final String username = databaseConfig.get(JdbcUtils.USERNAME_KEY).asText();</span>
+
+    // Azure Postgres server has this username pattern: &lt;username&gt;@&lt;host&gt;.
+    // Inside Postgres, the true username is just &lt;username&gt;.
+    // The jdbc_url is constructed in the toDatabaseConfig method.
+<span class="pc bpc" id="L472" title="1 of 4 branches missed.">    if (username.contains(&quot;@&quot;) &amp;&amp; jdbcUrl.contains(&quot;azure.com:&quot;)) {</span>
+<span class="fc" id="L473">      final String[] tokens = username.split(&quot;@&quot;);</span>
+<span class="fc" id="L474">      final String postgresUsername = tokens[0];</span>
+<span class="fc" id="L475">      LOGGER.info(&quot;Azure username \&quot;{}\&quot; is detected; use \&quot;{}\&quot; to check permission&quot;, username, postgresUsername);</span>
+<span class="fc" id="L476">      return postgresUsername;</span>
+    }
+
+<span class="fc" id="L479">    return username;</span>
+  }
+
+  @Override
+  protected boolean isNotInternalSchema(final JsonNode jsonNode, final Set&lt;String&gt; internalSchemas) {
+<span class="fc" id="L484">    return false;</span>
+  }
+
+  @Override
+  protected AirbyteStateType getSupportedStateType(final JsonNode config) {
+<span class="fc bfc" id="L489" title="All 2 branches covered.">    if (!featureFlags.useStreamCapableState()) {</span>
+<span class="fc" id="L490">      return AirbyteStateType.LEGACY;</span>
+    }
+<span class="fc bfc" id="L492" title="All 2 branches covered.">    return PostgresUtils.isCdc(config) ? AirbyteStateType.GLOBAL : AirbyteStateType.STREAM;</span>
+  }
+
+  @Override
+  protected int getStateEmissionFrequency() {
+<span class="fc" id="L497">    return this.stateEmissionFrequency;</span>
+  }
+
+  @VisibleForTesting
+  protected void setStateEmissionFrequencyForDebug(final int stateEmissionFrequency) {
+<span class="fc" id="L502">    this.stateEmissionFrequency = stateEmissionFrequency;</span>
+<span class="fc" id="L503">  }</span>
+
+  public static void main(final String[] args) throws Exception {
+<span class="nc" id="L506">    final Source source = PostgresSource.sshWrappedSource();</span>
+<span class="nc" id="L507">    LOGGER.info(&quot;starting source: {}&quot;, PostgresSource.class);</span>
+<span class="nc" id="L508">    new IntegrationRunner(source).run(args);</span>
+<span class="nc" id="L509">    LOGGER.info(&quot;completed source: {}&quot;, PostgresSource.class);</span>
+<span class="nc" id="L510">  }</span>
+
+  @Override
+  @Trace(operationName = CHECK_TRACE_OPERATION_NAME)
+  public AirbyteConnectionStatus check(final JsonNode config) throws Exception {
+<span class="fc bfc" id="L515" title="All 2 branches covered.">    if (PostgresUtils.isCdc(config)) {</span>
+<span class="pc bpc" id="L516" title="1 of 4 branches missed.">      if (config.has(SSL_MODE) &amp;&amp; config.get(SSL_MODE).has(MODE)) {</span>
+<span class="fc" id="L517">        final String sslModeValue = config.get(SSL_MODE).get(MODE).asText();</span>
+<span class="pc bpc" id="L518" title="1 of 2 branches missed.">        if (INVALID_CDC_SSL_MODES.contains(sslModeValue)) {</span>
+<span class="fc" id="L519">          return new AirbyteConnectionStatus()</span>
+<span class="fc" id="L520">              .withStatus(Status.FAILED)</span>
+<span class="fc" id="L521">              .withMessage(String.format(</span>
+                  &quot;In CDC replication mode ssl value '%s' is invalid. Please use one of the following SSL modes: disable, require, verify-ca, verify-full&quot;,
+                  sslModeValue));
+        }
+      }
+    }
+<span class="fc" id="L527">    return super.check(config);</span>
+  }
+
+  protected String toSslJdbcParam(final SslMode sslMode) {
+<span class="fc" id="L531">    return toSslJdbcParamInternal(sslMode);</span>
+  }
+
+  protected static String toSslJdbcParamInternal(final SslMode sslMode) {
+<span class="pc bpc" id="L535" title="6 of 7 branches missed.">    final var result = switch (sslMode) {</span>
+<span class="nc" id="L536">      case DISABLED -&gt; org.postgresql.jdbc.SslMode.DISABLE.value;</span>
+<span class="nc" id="L537">      case ALLOWED -&gt; org.postgresql.jdbc.SslMode.ALLOW.value;</span>
+<span class="nc" id="L538">      case PREFERRED -&gt; org.postgresql.jdbc.SslMode.PREFER.value;</span>
+<span class="fc" id="L539">      case REQUIRED -&gt; org.postgresql.jdbc.SslMode.REQUIRE.value;</span>
+<span class="nc" id="L540">      case VERIFY_CA -&gt; org.postgresql.jdbc.SslMode.VERIFY_CA.value;</span>
+<span class="nc" id="L541">      case VERIFY_IDENTITY -&gt; org.postgresql.jdbc.SslMode.VERIFY_FULL.value;</span>
+<span class="pc" id="L542">      default -&gt; throw new IllegalArgumentException(&quot;unexpected ssl mode&quot;);</span>
+    };
+<span class="fc" id="L544">    LOGGER.info(&quot;{} toSslJdbcParam {}&quot;, sslMode.name(), result);</span>
+<span class="fc" id="L545">    return result;</span>
+  }
+
+  @Override
+  protected boolean verifyCursorColumnValues(final JdbcDatabase database, final String schema, final String tableName, final String columnName)
+      throws SQLException {
+    final String query;
+<span class="fc" id="L552">    final String resultColName = &quot;nullValue&quot;;</span>
+    // Query: Only if cursor column allows null values, query whether it contains one
+<span class="pc bpc" id="L554" title="1 of 2 branches missed.">    if (StringUtils.isNotBlank(schema)) {</span>
+<span class="fc" id="L555">      query = String.format(NULL_CURSOR_VALUE_WITH_SCHEMA_QUERY,</span>
+          schema, tableName, columnName, schema, tableName, columnName, resultColName);
+    } else {
+<span class="nc" id="L558">      query = String.format(NULL_CURSOR_VALUE_NO_SCHEMA_QUERY,</span>
+          tableName, columnName, tableName, columnName, resultColName);
+    }
+<span class="fc" id="L561">    LOGGER.debug(&quot;null value query: {}&quot;, query);</span>
+<span class="fc" id="L562">    final List&lt;JsonNode&gt; jsonNodes = database.bufferedResultSetQuery(conn -&gt; conn.createStatement().executeQuery(query),</span>
+<span class="fc" id="L563">        resultSet -&gt; JdbcUtils.getDefaultSourceOperations().rowToJson(resultSet));</span>
+<span class="pc bpc" id="L564" title="1 of 2 branches missed.">    Preconditions.checkState(jsonNodes.size() == 1);</span>
+<span class="fc" id="L565">    final boolean nullValExist = jsonNodes.get(0).get(resultColName.toLowerCase()).booleanValue(); // For some reason value in node is lowercase</span>
+<span class="fc" id="L566">    LOGGER.debug(&quot;null value exist: {}&quot;, nullValExist);</span>
+<span class="fc bfc" id="L567" title="All 2 branches covered.">    return !nullValExist;</span>
+  }
+
+  @Override
+  protected void estimateFullRefreshSyncSize(final JdbcDatabase database,
+                                             final ConfiguredAirbyteStream configuredAirbyteStream) {
+    try {
+<span class="fc" id="L574">      final String schemaName = configuredAirbyteStream.getStream().getNamespace();</span>
+<span class="fc" id="L575">      final String tableName = configuredAirbyteStream.getStream().getName();</span>
+<span class="fc" id="L576">      final String fullTableName =</span>
+<span class="fc" id="L577">          getFullyQualifiedTableNameWithQuoting(schemaName, tableName, getQuoteString());</span>
+
+<span class="fc" id="L579">      final List&lt;JsonNode&gt; tableEstimateResult = getFullTableEstimate(database, fullTableName, schemaName, tableName);</span>
+
+<span class="pc bpc" id="L581" title="2 of 4 branches missed.">      if (!tableEstimateResult.isEmpty() &amp;&amp; tableEstimateResult.get(0).has(ROW_COUNT_RESULT_COL) &amp;&amp;</span>
+<span class="pc bpc" id="L582" title="1 of 2 branches missed.">          tableEstimateResult.get(0).has(TOTAL_BYTES_RESULT_COL)) {</span>
+<span class="fc" id="L583">        final long syncRowCount = tableEstimateResult.get(0).get(ROW_COUNT_RESULT_COL).asLong();</span>
+<span class="fc" id="L584">        final long syncByteCount = tableEstimateResult.get(0).get(TOTAL_BYTES_RESULT_COL).asLong();</span>
+
+        // The fast count query can return negative or otherwise invalid results for small tables. In this
+        // case, we can skip emitting an
+        // estimate trace altogether since the sync will likely complete quickly.
+<span class="pc bpc" id="L589" title="1 of 2 branches missed.">        if (syncRowCount &lt;= 0) {</span>
+<span class="fc" id="L590">          return;</span>
+        }
+
+        // Here, we double the bytes estimate to account for serialization. Perhaps a better way to do this
+        // is to
+        // read a row and Stringify it to better understand the accurate volume of data sent over the wire.
+        // However, this approach doesn't account for different row sizes.
+<span class="nc" id="L597">        AirbyteTraceMessageUtility.emitEstimateTrace(PLATFORM_DATA_INCREASE_FACTOR * syncByteCount, Type.STREAM, syncRowCount, tableName, schemaName);</span>
+<span class="nc" id="L598">        LOGGER.info(String.format(&quot;Estimate for table: %s : {sync_row_count: %s, sync_bytes: %s, total_table_row_count: %s, total_table_bytes: %s}&quot;,</span>
+<span class="nc" id="L599">            fullTableName, syncRowCount, syncByteCount, syncRowCount, syncByteCount));</span>
+      }
+<span class="nc" id="L601">    } catch (final SQLException e) {</span>
+<span class="nc" id="L602">      LOGGER.warn(&quot;Error occurred while attempting to estimate sync size&quot;, e);</span>
+<span class="nc" id="L603">    }</span>
+<span class="nc" id="L604">  }</span>
+
+  @Override
+  protected void estimateIncrementalSyncSize(final JdbcDatabase database,
+                                             final ConfiguredAirbyteStream configuredAirbyteStream,
+                                             final CursorInfo cursorInfo,
+                                             final PostgresType cursorFieldType) {
+    try {
+<span class="fc" id="L612">      final String schemaName = configuredAirbyteStream.getStream().getNamespace();</span>
+<span class="fc" id="L613">      final String tableName = configuredAirbyteStream.getStream().getName();</span>
+<span class="fc" id="L614">      final String fullTableName =</span>
+<span class="fc" id="L615">          getFullyQualifiedTableNameWithQuoting(schemaName, tableName, getQuoteString());</span>
+
+<span class="fc" id="L617">      final List&lt;JsonNode&gt; tableEstimateResult = getFullTableEstimate(database, fullTableName, schemaName, tableName);</span>
+
+<span class="fc" id="L619">      final long tableRowCount = tableEstimateResult.get(0).get(ROW_COUNT_RESULT_COL).asLong();</span>
+<span class="fc" id="L620">      final long tableByteCount = tableEstimateResult.get(0).get(TOTAL_BYTES_RESULT_COL).asLong();</span>
+
+      // The fast count query can return negative or otherwise invalid results for small tables. In this
+      // case, we can skip emitting an
+      // estimate trace altogether since the sync will likely complete quickly.
+<span class="pc bpc" id="L625" title="1 of 2 branches missed.">      if (tableRowCount &lt;= 0) {</span>
+<span class="fc" id="L626">        return;</span>
+      }
+
+      final long syncRowCount;
+      final long syncByteCount;
+
+<span class="nc" id="L632">      syncRowCount = getIncrementalTableRowCount(database, fullTableName, cursorInfo, cursorFieldType);</span>
+<span class="nc" id="L633">      syncByteCount = (tableByteCount / tableRowCount) * syncRowCount;</span>
+
+      // Here, we double the bytes estimate to account for serialization. Perhaps a better way to do this
+      // is to
+      // read a row and Stringify it to better understand the accurate volume of data sent over the wire.
+      // However, this approach doesn't account for different row sizes
+<span class="nc" id="L639">      AirbyteTraceMessageUtility.emitEstimateTrace(PLATFORM_DATA_INCREASE_FACTOR * syncByteCount, Type.STREAM, syncRowCount, tableName, schemaName);</span>
+<span class="nc" id="L640">      LOGGER.info(String.format(&quot;Estimate for table: %s : {sync_row_count: %s, sync_bytes: %s, total_table_row_count: %s, total_table_bytes: %s}&quot;,</span>
+<span class="nc" id="L641">          fullTableName, syncRowCount, syncByteCount, tableRowCount, tableRowCount));</span>
+<span class="nc" id="L642">    } catch (final SQLException e) {</span>
+<span class="nc" id="L643">      LOGGER.warn(&quot;Error occurred while attempting to estimate sync size&quot;, e);</span>
+<span class="nc" id="L644">    }</span>
+<span class="nc" id="L645">  }</span>
+
+  private List&lt;JsonNode&gt; getFullTableEstimate(final JdbcDatabase database,
+                                              final String fullTableName,
+                                              final String schemaName,
+                                              final String tableName)
+      throws SQLException {
+    // Construct the table estimate query.
+<span class="fc" id="L653">    final String tableEstimateQuery =</span>
+<span class="fc" id="L654">        String.format(TABLE_ESTIMATE_QUERY, schemaName, tableName, ROW_COUNT_RESULT_COL, fullTableName, TOTAL_BYTES_RESULT_COL);</span>
+<span class="fc" id="L655">    LOGGER.debug(&quot;table estimate query: {}&quot;, tableEstimateQuery);</span>
+<span class="fc" id="L656">    final List&lt;JsonNode&gt; jsonNodes = database.bufferedResultSetQuery(conn -&gt; conn.createStatement().executeQuery(tableEstimateQuery),</span>
+<span class="fc" id="L657">        resultSet -&gt; JdbcUtils.getDefaultSourceOperations().rowToJson(resultSet));</span>
+<span class="pc bpc" id="L658" title="1 of 2 branches missed.">    Preconditions.checkState(jsonNodes.size() == 1);</span>
+<span class="fc" id="L659">    return jsonNodes;</span>
+  }
+
+  private long getIncrementalTableRowCount(final JdbcDatabase database,
+                                           final String fullTableName,
+                                           final CursorInfo cursorInfo,
+                                           final PostgresType cursorFieldType)
+      throws SQLException {
+<span class="nc" id="L667">    final String quotedCursorField = getIdentifierWithQuoting(cursorInfo.getCursorField(), getQuoteString());</span>
+
+    // Calculate actual number of rows to sync here.
+<span class="nc" id="L670">    final List&lt;JsonNode&gt; result = database.queryJsons(</span>
+        connection -&gt; {
+<span class="nc" id="L672">          LOGGER.info(&quot;Preparing query for table: {}&quot;, fullTableName);</span>
+          final String operator;
+<span class="nc bnc" id="L674" title="All 2 branches missed.">          if (cursorInfo.getCursorRecordCount() &lt;= 0L) {</span>
+<span class="nc" id="L675">            operator = &quot;&gt;&quot;;</span>
+          } else {
+<span class="nc" id="L677">            final long actualRecordCount = getActualCursorRecordCount(</span>
+<span class="nc" id="L678">                connection, fullTableName, quotedCursorField, cursorFieldType, cursorInfo.getCursor());</span>
+<span class="nc" id="L679">            LOGGER.info(&quot;Table {} cursor count: expected {}, actual {}&quot;, fullTableName, cursorInfo.getCursorRecordCount(), actualRecordCount);</span>
+<span class="nc bnc" id="L680" title="All 2 branches missed.">            if (actualRecordCount == cursorInfo.getCursorRecordCount()) {</span>
+<span class="nc" id="L681">              operator = &quot;&gt;&quot;;</span>
+            } else {
+<span class="nc" id="L683">              operator = &quot;&gt;=&quot;;</span>
+            }
+          }
+
+<span class="nc" id="L687">          final StringBuilder sql = new StringBuilder(String.format(&quot;SELECT COUNT(*) FROM %s WHERE %s %s ?&quot;,</span>
+              fullTableName,
+              quotedCursorField,
+              operator));
+
+<span class="nc" id="L692">          final PreparedStatement preparedStatement = connection.prepareStatement(sql.toString());</span>
+<span class="nc" id="L693">          LOGGER.info(&quot;Executing query for table {}: {}&quot;, fullTableName, preparedStatement);</span>
+<span class="nc" id="L694">          sourceOperations.setCursorField(preparedStatement, 1, cursorFieldType, cursorInfo.getCursor());</span>
+<span class="nc" id="L695">          return preparedStatement;</span>
+        },
+<span class="nc" id="L697">        resultSet -&gt; JdbcUtils.getDefaultSourceOperations().rowToJson(resultSet));</span>
+
+<span class="nc bnc" id="L699" title="All 2 branches missed.">    Preconditions.checkState(result.size() == 1);</span>
+<span class="nc" id="L700">    return result.get(0).get(&quot;count&quot;).asLong();</span>
+  }
+
+}
+</pre><div class="footer"><span class="right">Created with <a href="http://www.jacoco.org/jacoco">JaCoCo</a> 0.8.8.202204050719</span></div></body></html>
