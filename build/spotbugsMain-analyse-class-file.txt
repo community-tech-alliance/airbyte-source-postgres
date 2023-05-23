@@ -1,0 +1,13 @@
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresSource$1.class
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresCdcStateHandler.class
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresSource.class
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresCdcProperties.class
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresSourceOperations$1.class
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresQueryUtils.class
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresCdcCatalogHelper.class
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresCdcConnectorMetadataInjector.class
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresSourceOperations.class
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresSourceOperations$ColumnInfo.class
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresCdcSavedInfoFetcher.class
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresType.class
+/Users/emilycogsdill/Documents/GitHub/airbyte/airbyte-integrations/connectors/source-postgres/build/classes/java/main/io/airbyte/integrations/source/postgres/PostgresUtils.class
