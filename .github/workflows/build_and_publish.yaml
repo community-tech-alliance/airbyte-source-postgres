@@ -9,7 +9,7 @@ on:
     types: [opened, synchronize, reopened]
 
 jobs:
-  publish-source-twitter-image:
+  publish-source-image:
     runs-on: ubuntu-latest
 
     steps:
@@ -20,7 +20,7 @@ jobs:
       uses: docker/metadata-action@v4
       with:
         images: |
-          ghcr.io/community-tech-alliance/source-actblue
+          ghcr.io/community-tech-alliance/source-postgres
         tags: |
           type=ref,event=branch
           type=ref,event=pr
