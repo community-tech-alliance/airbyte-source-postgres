@@ -23,7 +23,7 @@ import org.slf4j.LoggerFactory;
 
 public class PostgresCdcProperties {
 
-  private static final int HEARTBEAT_FREQUENCY_SEC = 10;
+  private static final int HEARTBEAT_FREQUENCY_SEC = 20;
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresCdcProperties.class);
 
   static Properties getDebeziumDefaultProperties(final JdbcDatabase database) {
