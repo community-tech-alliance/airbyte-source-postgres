@@ -4,16 +4,16 @@
 
 package io.airbyte.integrations.source.postgres.cdc;
 
-import static io.airbyte.cdk.integrations.source.jdbc.JdbcSSLConnectionUtils.CLIENT_KEY_STORE_PASS;
-import static io.airbyte.cdk.integrations.source.jdbc.JdbcSSLConnectionUtils.CLIENT_KEY_STORE_URL;
-import static io.airbyte.cdk.integrations.source.jdbc.JdbcSSLConnectionUtils.SSL_MODE;
-import static io.airbyte.cdk.integrations.source.jdbc.JdbcSSLConnectionUtils.TRUST_KEY_STORE_PASS;
+import static io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.CLIENT_KEY_STORE_PASS;
+import static io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.CLIENT_KEY_STORE_URL;
+import static io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.SSL_MODE;
+import static io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.TRUST_KEY_STORE_PASS;
 
 import com.fasterxml.jackson.databind.JsonNode;
-import io.airbyte.cdk.db.jdbc.JdbcDatabase;
-import io.airbyte.cdk.db.jdbc.JdbcUtils;
-import io.airbyte.cdk.integrations.debezium.internals.postgres.PostgresConverter;
-import io.airbyte.cdk.integrations.source.jdbc.JdbcSSLConnectionUtils.SslMode;
+import io.airbyte.db.jdbc.JdbcDatabase;
+import io.airbyte.db.jdbc.JdbcUtils;
+import io.airbyte.integrations.debezium.internals.postgres.PostgresConverter;
+import io.airbyte.integrations.source.jdbc.JdbcSSLConnectionUtils.SslMode;
 import io.airbyte.integrations.source.postgres.PostgresSource;
 import io.airbyte.integrations.source.postgres.PostgresUtils;
 import java.net.URI;
@@ -25,11 +25,7 @@ import org.slf4j.LoggerFactory;
 
 public class PostgresCdcProperties {
 
-  private static final Duration HEARTBEAT_INTERVAL = Duration.ofSeconds(20L);
-
-  // Test execution latency is lower when heartbeats are more frequent.
-  private static final Duration HEARTBEAT_INTERVAL_IN_TESTS = Duration.ofSeconds(1L);
-
+  private static final int HEARTBEAT_FREQUENCY_SEC = 20;
   private static final Logger LOGGER = LoggerFactory.getLogger(PostgresCdcProperties.class);
 
   public static Properties getDebeziumDefaultProperties(final JdbcDatabase database) {
@@ -62,13 +58,7 @@ public class PostgresCdcProperties {
     props.setProperty("converters", "datetime");
     props.setProperty("datetime.type", PostgresConverter.class.getName());
     props.setProperty("include.unknown.datatypes", "true");
-
-    final Duration heartbeatInterval =
-        (database.getSourceConfig().has("is_test") && database.getSourceConfig().get("is_test").asBoolean())
-            ? HEARTBEAT_INTERVAL_IN_TESTS
-            : HEARTBEAT_INTERVAL;
-    props.setProperty("heartbeat.interval.ms", Long.toString(heartbeatInterval.toMillis()));
-
+    props.setProperty("heartbeat.interval.ms", Long.toString(Duration.ofSeconds(HEARTBEAT_FREQUENCY_SEC).toMillis()));
     if (PostgresUtils.shouldFlushAfterSync(sourceConfig)) {
       props.setProperty("flush.lsn.source", "false");
     }

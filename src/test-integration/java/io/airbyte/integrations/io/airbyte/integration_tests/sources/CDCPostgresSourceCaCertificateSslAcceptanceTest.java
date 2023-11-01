@@ -16,9 +16,4 @@ public class CDCPostgresSourceCaCertificateSslAcceptanceTest extends AbstractCdc
         .build();
   }
 
-  @Override
-  protected String getServerImageName() {
-    return "postgres:15-bullseye";
-  }
-
 }

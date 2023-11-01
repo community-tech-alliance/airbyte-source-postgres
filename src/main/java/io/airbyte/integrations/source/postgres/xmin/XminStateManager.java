@@ -94,5 +94,4 @@ public class XminStateManager {
         .withType(AirbyteStateType.STREAM)
         .withStream(airbyteStreamState);
   }
-
 }
