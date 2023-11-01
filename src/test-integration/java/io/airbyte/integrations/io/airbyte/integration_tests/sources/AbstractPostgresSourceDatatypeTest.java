@@ -294,9 +294,8 @@ public abstract class AbstractPostgresSourceDatatypeTest extends AbstractSourceD
             .build());
 
     /*
-     * Verify NUMERIC/DECIMAL Datatypes has
-     *  - the default precision of 131089 (See PostgresConverter)
-     *  - unspecified scale - any decimal value is preserved
+     * Verify NUMERIC/DECIMAL Datatypes has - the default precision of 131089 (See PostgresConverter) -
+     * unspecified scale - any decimal value is preserved
      */
     addDataTypeTestData(
         TestDataHolder.builder()
@@ -589,6 +588,13 @@ public abstract class AbstractPostgresSourceDatatypeTest extends AbstractSourceD
             .addExpectedValues("(\"fuzzy dice\",42,1.99)", null)
             .build());
 
+    addHstoreTest();
+    addTimeWithTimeZoneTest();
+    addArraysTestData();
+    addMoneyTest();
+  }
+
+  protected void addHstoreTest() {
     addDataTypeTestData(
         TestDataHolder.builder()
             .sourceType("hstore")
@@ -603,10 +609,6 @@ public abstract class AbstractPostgresSourceDatatypeTest extends AbstractSourceD
                 {"ISBN-13":"978-1449370000","weight":"11.2 ounces","paperback":"243","publisher":"postgresqltutorial.com","language":"English"}""",
                 null)
             .build());
-
-    addTimeWithTimeZoneTest();
-    addArraysTestData();
-    addMoneyTest();
   }
 
   protected void addMoneyTest() {
@@ -776,9 +778,8 @@ public abstract class AbstractPostgresSourceDatatypeTest extends AbstractSourceD
 
     for (final String type : Set.of("numeric", "decimal")) {
       /*
-       * Verify NUMERIC[]/DECIMAL[] Datatypes has
-       *  - the default precision of 131089 (See PostgresConverter)
-       *  - unspecified scale - any decimal value is preserved
+       * Verify NUMERIC[]/DECIMAL[] Datatypes has - the default precision of 131089 (See
+       * PostgresConverter) - unspecified scale - any decimal value is preserved
        */
       addDataTypeTestData(
           TestDataHolder.builder()
@@ -792,17 +793,17 @@ public abstract class AbstractPostgresSourceDatatypeTest extends AbstractSourceD
               .addExpectedValues("[131070.23,231072.476596593]")
               .build());
       /*
-       * Verify NUMERIC(`anyNumber`)[]/DECIMAL(`anyNumber`)[] Datatypes has
-       * default scale of 0 if the Precision is set
+       * Verify NUMERIC(`anyNumber`)[]/DECIMAL(`anyNumber`)[] Datatypes has default scale of 0 if the
+       * Precision is set
        */
       addDataTypeTestData(
           TestDataHolder.builder()
               .sourceType(String.format("%s_array", type))
               .fullSourceDataType(String.format("%s(20)[]", type.toUpperCase()))
               .airbyteType(JsonSchemaType.builder(JsonSchemaPrimitive.ARRAY)
-                               .withItems(JsonSchemaType.builder(JsonSchemaPrimitive.NUMBER)
-                                              .build())
-                               .build())
+                  .withItems(JsonSchemaType.builder(JsonSchemaPrimitive.NUMBER)
+                      .build())
+                  .build())
               .addInsertValues("'{131070,231072}'")
               .addExpectedValues("[131070,231072]")
               .build());
