@@ -8,9 +8,9 @@ This is CTA's patched version of Airbyte's Postgres source connector. We have ma
 
 As of 11/1/2023:
 
-**Dockerhub image:** `communitytechalliance/airbyte-source-postgres-patch:0.0.3`
-**Corresponds to official source version:** 3.1.3
-**Compiled using Airbyte version:** 0.52.0
+**Dockerhub image:** `communitytechalliance/airbyte-source-postgres-patch:0.0.4`
+**Corresponds to official source version:** 3.2.16
+**Compiled using Airbyte version:** 0.50.33
 
 ## Files changed in CTA patch
 
